@@ -1,0 +1,390 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Introduction to Fuzzy Control · TE3002B</title>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/reveal.js@5.1.0/dist/reset.css">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/reveal.js@5.1.0/dist/reveal.css">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/reveal.js@5.1.0/dist/theme/white.css">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/reveal.js@5.1.0/plugin/highlight/monokai.css">
+<link rel="stylesheet" href="../assets/css/theme.css">
+</head>
+<body>
+<a href="../index.html" style="position:fixed;bottom:14px;left:18px;z-index:30;font:600 13px Inter,sans-serif;color:#8a93a3;text-decoration:none">← all sessions</a>
+<div class="reveal"><div class="slides">
+<section data-markdown data-separator="^---$" data-separator-notes="^Note:">
+<textarea data-template>
+<!-- .slide: class="title" -->
+
+<span class="tag">TE3002B · Module 3 · Intelligent Control</span>
+
+# Introduction to Fuzzy Control
+
+<p class="sub">Why would an engineer ever choose to be <em>imprecise</em>?</p>
+
+<div class="agenda"><span>1 · Conventional control recap</span><span>2 · What is fuzzy control?</span><span>3 · When & why to use it</span><span>4 · The module roadmap</span></div>
+
+<p class="meta">Dr. Gildardo Sánchez Ante · Tecnológico de Monterrey</p>
+
+Note:
+Welcome (2 min). Today's goal: by the end, students should be able to explain in one sentence what fuzzy control is and give two situations where it beats a model-based design.
+Session plan (Week 1 · Session 1 · 120 min): this deck ≈ 45–50 min, then deck 02 (fuzzy logic basics).
+Tip: keep the score chip visible (top-right); it counts checkpoint answers clicked on the projector, which is a good excuse to let a different student click each time.
+
+---
+
+<!-- .slide: class="checkpoint" data-background-color="#f3effc" -->
+
+<span class="tag violet">Warm-up · 60 s</span>
+
+## You are driving. The car ahead brakes.
+
+<div class="cols">
+<div>
+
+How do **you** decide how hard to press the brake?
+
+<div class="fragment rise">
+
+- “If the gap is **small** and closing **fast**, brake **hard**.”
+- “If the gap is **large**, just ease off.”
+
+</div>
+</div>
+<div class="fragment rise">
+<div class="callout teal">You never computed a differential equation. You used <b>linguistic rules</b> with <b>vague</b> words — and you still drove safely.</div>
+<p class="small" style="margin-top:20px">That is the whole idea of this module.</p>
+</div>
+</div>
+
+<div class="timer" data-seconds="60"></div>
+
+Note:
+Ask the room first, give them the 60-s timer to discuss in pairs. Collect 2–3 answers aloud. Then reveal the fragments.
+Key point: humans control complex nonlinear systems every day with vague rules. Fuzzy control formalizes exactly that.
+
+---
+
+## The module at a glance
+
+<div class="cols c3">
+<div class="card"><h4>Weeks 1–2</h4><p>Fuzzy sets, operations, membership functions</p></div>
+<div class="card"><h4>Weeks 2–3</h4><p>Relations, rules, fuzzy reasoning, inference systems</p></div>
+<div class="card"><h4>Weeks 4–5</h4><p>Defuzzification, controller design & tuning, neuro-fuzzy, case studies</p></div>
+</div>
+
+<br>
+
+1. Introduction to fuzzy control <span class="muted">← today</span>
+2. Reasoning and inference in fuzzy logic
+3. Fuzzy controller design
+4. Neuro-fuzzy systems
+5. Case studies in industrial applications and robotics
+
+Note:
+Map to the syllabus (TE3002B, topic 3): 3.1 Intro, 3.2 Mathematics of fuzzy control, 3.3 Specifications & design, 3.4 Neuro-fuzzy technologies, 3.5 Industrial and robotics case studies.
+Mention practice: ~15 h of lab — printer head (Python), tuning, and the CoppeliaSim conveyor belt.
+
+---
+
+<!-- .slide: class="divider" -->
+
+<div class="num">01</div>
+
+# Conventional control — a quick recap
+
+Note:
+Section divider (≈ 12 min block). Goal: remind how a control engineer works with models, so the contrast with fuzzy control is sharp.
+
+---
+
+## Example: design a cruise-control system
+
+<div class="cols c-60-40">
+<div>
+
+After understanding the plant and the design objectives, the control engineer typically:
+
+1. <span class="fragment highlight-current-blue">**Models** the car dynamics (power train, tires, suspension, road grade…)</span>
+2. <span class="fragment highlight-current-blue">**Designs** a controller from the model (often a linearised one)</span>
+3. <span class="fragment highlight-current-blue">**Analyses** the closed loop — math or simulation (maybe redesign)</span>
+4. <span class="fragment highlight-current-blue">**Implements** on a microprocessor and evaluates (maybe redesign)</span>
+
+</div>
+<div class="fragment rise">
+<div class="pipeline" style="flex-direction:column;align-items:stretch">
+<div class="blk a1">Model<small>differential equations</small></div>
+<div class="arr center">↓</div>
+<div class="blk a2">Controller<small>PID, LQR, H∞…</small></div>
+<div class="arr center">↓</div>
+<div class="blk a3">Analysis<small>stability, performance</small></div>
+<div class="arr center">↓</div>
+<div class="blk plant">Implementation</div>
+</div>
+</div>
+</div>
+
+Note:
+Step through the four bullets with fragments. Emphasize that steps 1 and 3 depend completely on the model. Ask: "What happens if the model is wrong?" Let them answer: you redesign — loops back.
+
+---
+
+## The mathematical model is…
+
+<div class="cols">
+<div>
+
+- <span class="fragment rise">**Never perfect**</span>
+- <span class="fragment rise">**An abstraction** of the real system</span>
+- <span class="fragment rise">Based on a **system of differential equations**</span>
+- <span class="fragment rise">Only needs to be *“accurate enough to be able to design a controller that will work”*</span>
+
+</div>
+<div class="fragment rise">
+
+<div class="m">$$ m\ddot{x} + b\dot{x} + kx = u(t) $$</div>
+
+<div class="callout">What if you <b>can't</b> write this equation — or it's so nonlinear that linearising destroys it?</div>
+
+</div>
+</div>
+
+Note:
+Transition slide to motivate fuzzy control. The callout is the hook for the next section.
+
+---
+
+## The conventional toolbox
+
+<div class="cols c3">
+<div class="card fragment rise"><h4>PID</h4><p>&gt;90 % of controllers in operation. Often tuned with heuristics (Ziegler–Nichols) — just like fuzzy controllers!</p></div>
+<div class="card fragment rise"><h4>Classical</h4><p>Lead-lag, Bode & Nyquist, root locus</p></div>
+<div class="card fragment rise"><h4>State space</h4><p>State feedback, observers</p></div>
+<div class="card fragment rise"><h4>Optimal</h4><p>LQR, Pontryagin, dynamic programming</p></div>
+<div class="card fragment rise"><h4>Robust</h4><p>H₂ / H∞, QFT, loop shaping</p></div>
+<div class="card fragment rise"><h4>Nonlinear</h4><p>Feedback linearization, Lyapunov redesign, sliding mode, backstepping</p></div>
+<div class="card fragment rise"><h4>Adaptive</h4><p>MRAC, self-tuning regulators</p></div>
+<div class="card fragment rise"><h4>Stochastic</h4><p>Minimum variance, LQG</p></div>
+<div class="card fragment rise"><h4>Discrete-event</h4><p>Petri nets, supervisory control</p></div>
+</div>
+
+Note:
+Don't dwell. The message: a rich toolbox exists, and almost all of it needs a model. PID is the exception that is often tuned heuristically — a nice bridge to fuzzy control.
+
+---
+
+<!-- .slide: class="checkpoint" data-background-color="#f3effc" -->
+
+<span class="tag violet">Checkpoint 1</span>
+
+<div class="quiz" data-answer="c">
+<p class="q">Which statement about the plant model in conventional control is correct?</p>
+<div class="opts">
+<button class="opt" data-k="a">It must be a perfect replica of the real system</button>
+<button class="opt" data-k="b">It is only needed in the implementation step</button>
+<button class="opt" data-k="c">It is an abstraction that only has to be good enough to design a working controller</button>
+<button class="opt" data-k="d">It is never used for analysis — only simulation</button>
+</div>
+<div class="explain">Models are always approximations. The design is <b>model-centric</b>: modelling, design and analysis all depend on it. Fuzzy control will be <b>knowledge-centric</b> instead.</div>
+</div>
+
+Note:
+30–45 s. Let a student click. If wrong, discuss why before revealing.
+
+---
+
+<!-- .slide: class="divider" -->
+
+<div class="num">02</div>
+
+# What is fuzzy control?
+
+Note:
+Section divider (≈ 20 min block). From here on, the vocabulary of the whole module is introduced: fuzzification, inference, defuzzification.
+
+---
+
+## Definition
+
+<div class="big" style="max-width:1000px">Fuzzy control provides a formal methodology for <em>representing</em>, <em>manipulating</em> and <em>implementing</em> a human's heuristic knowledge about how to control a system.</div>
+
+<br>
+
+<div class="cols">
+<div class="card fragment rise"><h4>Handles uncertainty</h4><p>Works with imprecise, uncertain or vague information.</p></div>
+<div class="card fragment rise"><h4>Mimics human reasoning</h4><p>Translates linguistic rules into a mathematical model.</p></div>
+</div>
+
+Note:
+Read the definition slowly. Underline the three verbs: representing (fuzzy sets), manipulating (fuzzy logic / inference), implementing (the controller). Each becomes a block of the course.
+
+---
+
+## Model-centric vs knowledge-centric
+
+<div class="cols">
+<div class="card">
+<h4>Conventional</h4>
+
+- Start from **equations** of the plant
+- Controller derived mathematically
+- Precise, but needs a good model
+
+</div>
+<div class="card" style="border-color:var(--accent)">
+<h4>Fuzzy</h4>
+
+- Start from **expert rules**: “IF error is big THEN voltage is high”
+- Controller is a **rule base + inference**
+- Needs a good *expert*, not a model
+
+</div>
+</div>
+
+<div class="fragment rise" style="margin-top:28px">
+<div class="pipeline">
+<div class="blk a1">Fuzzification<small>numbers → words</small></div><div class="arr">→</div>
+<div class="blk a2">Inference<small>rules</small></div><div class="arr">→</div>
+<div class="blk a3">Defuzzification<small>words → numbers</small></div><div class="arr">→</div>
+<div class="blk plant">Plant</div>
+</div>
+</div>
+
+Note:
+This pipeline is the "map" of the whole module. Point out that every later deck zooms into one of these blocks. Come back to this slide on later sessions.
+
+---
+
+## When is fuzzy control useful?
+
+<div class="cols">
+<div>
+
+<span class="tag">Useful cases</span>
+
+1. The process is **too complex** to analyse with conventional quantitative techniques.
+2. The available information is **qualitative, inexact or uncertain**.
+
+</div>
+<div>
+
+<span class="tag amber">Advantages of an FLC</span>
+
+1. **Parallel / distributed** control — many rules act at once on a nonlinear system.
+2. **Linguistic** control — uses human knowledge directly.
+3. **Robust** control — more than one rule fires; one bad rule is not fatal.
+
+</div>
+</div>
+
+<div class="fragment rise callout teal" style="margin-top:24px">Typical domains: automotive (ABS, transmissions), home appliances (washing machines, rice cookers, cameras), cranes, cement kilns, robotics.</div>
+
+Note:
+Ask for examples from their own experience — many have seen "fuzzy logic" printed on a washing machine or rice cooker.
+
+---
+
+<!-- .slide: class="checkpoint" data-background-color="#f3effc" -->
+
+<span class="tag violet">Checkpoint 2 · Think–pair–share</span>
+
+<div class="quiz" data-answer="b">
+<p class="q">For which task is a fuzzy controller the <b>most natural</b> first choice?</p>
+<div class="opts">
+<button class="opt" data-k="a">A DC motor with an accurate, identified linear model</button>
+<button class="opt" data-k="b">A container crane where expert operators reliably avoid load sway, but nobody has a usable model</button>
+<button class="opt" data-k="c">A digital filter with an exact transfer function</button>
+<button class="opt" data-k="d">A system whose only requirement is a provable H∞ bound</button>
+</div>
+<div class="explain">Fuzzy control shines when <b>expert knowledge exists but a model does not</b>. We will design exactly this crane controller in Session 6.</div>
+</div>
+
+<div class="timer" data-seconds="90"></div>
+
+Note:
+Give 90 s to discuss in pairs before anyone clicks. Option (a) is a trap: fuzzy control would work, but a model-based design is more natural there.
+
+---
+
+## A first taste: the cruise control, in words
+
+<div class="cols c-60-40">
+<div>
+
+| Speed error | Acceleration | → Throttle |
+|---|---|---|
+| very negative | any | increase a lot |
+| slightly negative | decreasing | increase a little |
+| about zero | about zero | hold |
+| slightly positive | increasing | decrease a little |
+| very positive | any | decrease a lot |
+
+</div>
+<div class="fragment rise">
+
+<details><summary>What do we still need to make this work?</summary>
+Define what “slightly”, “about zero”, “a lot” <i>mean</i> numerically (membership functions), how to combine rules (inference) and how to obtain one throttle value (defuzzification).</details>
+
+<details><summary>Where did the rules come from?</summary>
+From an experienced driver — not from a differential equation.</details>
+
+</div>
+</div>
+
+Note:
+Use the dropdowns as "predict, then reveal". Ask the question, wait, then open.
+
+---
+
+## Roadmap of the next sessions
+
+<div class="pipeline" style="justify-content:space-between">
+<div class="blk a1">Sets<small>W1</small></div><div class="arr">→</div>
+<div class="blk a1">MFs<small>W2</small></div><div class="arr">→</div>
+<div class="blk a2">Rules<small>W2–3</small></div><div class="arr">→</div>
+<div class="blk a2">Inference<small>W3</small></div><div class="arr">→</div>
+<div class="blk a3">Defuzz<small>W4</small></div><div class="arr">→</div>
+<div class="blk plant">Design & ANFIS<small style="color:#ccc">W4–5</small></div>
+</div>
+
+<br>
+
+<div class="cols">
+<div class="card"><h4>Tools</h4><p>Python · NumPy · <code>scikit-fuzzy</code> · Jupyter · CoppeliaSim (ZMQ remote API)</p></div>
+<div class="card"><h4>Reference</h4><p>Von Altrock, C. <i>Fuzzy Logic & Neuro Fuzzy Applications Explained</i>, Prentice Hall, 1995.</p></div>
+</div>
+
+Note:
+Ask students to install scikit-fuzzy before next session: pip install scikit-fuzzy.
+
+---
+
+<!-- .slide: class="checkpoint" data-background-color="#f3effc" -->
+
+<span class="tag violet">Exit ticket</span>
+
+## In one sentence each:
+
+1. What does a fuzzy controller need *instead* of a plant model?
+2. Name the three blocks of a fuzzy controller.
+3. Give one industrial example where you'd try fuzzy control first.
+
+<details><summary>Model answers</summary>
+1. Expert (linguistic) knowledge in the form of IF–THEN rules. · 2. Fuzzification → inference → defuzzification. · 3. e.g. container crane anti-sway, cement kiln, washing machine load sensing.</details>
+
+Note:
+If time allows, students write answers on a sticky note / Canvas quick quiz. Otherwise move to deck 02.
+</textarea>
+</section>
+</div></div>
+<script src="https://cdn.jsdelivr.net/npm/reveal.js@5.1.0/dist/reveal.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/reveal.js@5.1.0/plugin/markdown/markdown.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/reveal.js@5.1.0/plugin/highlight/highlight.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/reveal.js@5.1.0/plugin/notes/notes.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/reveal.js@5.1.0/plugin/math/math.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/reveal.js@5.1.0/plugin/zoom/zoom.js"></script>
+<script src="../assets/js/fuzzy.js"></script>
+<script src="../assets/js/deck.js"></script>
+</body>
+</html>

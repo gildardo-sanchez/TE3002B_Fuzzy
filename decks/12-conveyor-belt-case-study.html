@@ -1,0 +1,307 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Controlling a Conveyor Belt · TE3002B</title>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/reveal.js@5.1.0/dist/reset.css">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/reveal.js@5.1.0/dist/reveal.css">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/reveal.js@5.1.0/dist/theme/white.css">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/reveal.js@5.1.0/plugin/highlight/monokai.css">
+<link rel="stylesheet" href="../assets/css/theme.css">
+</head>
+<body>
+<a href="../index.html" style="position:fixed;bottom:14px;left:18px;z-index:30;font:600 13px Inter,sans-serif;color:#8a93a3;text-decoration:none">← all sessions</a>
+<div class="reveal"><div class="slides">
+<section data-markdown data-separator="^---$" data-separator-notes="^Note:">
+<textarea data-template>
+<!-- .slide: class="title" -->
+
+<span class="tag">TE3002B · Module 3 · Session 10 · Case study</span>
+
+# Controlling a Conveyor Belt
+
+<p class="sub">A fuzzy position controller in CoppeliaSim — and a wrap-up of the module</p>
+
+<div class="agenda"><span>1 · Industrial case studies</span><span>2 · The challenge</span><span>3 · Design the FLC</span><span>4 · Simulate</span><span>5 · CoppeliaSim + ZMQ</span><span>6 · Module wrap-up</span></div>
+
+<p class="meta">Dr. Gildardo Sánchez Ante · Tecnológico de Monterrey</p>
+
+Note:
+Session 10 (80 min): 10 min case studies, 15 min design, 15 min simulator, 30 min CoppeliaSim lab start, 10 min wrap-up quiz.
+
+---
+
+## Fuzzy control in the real world
+
+<div class="cols c3">
+<div class="card fragment rise"><h4>Cement kilns</h4><p>F.L. Smidth, Denmark (≈1980): one of the first industrial fuzzy controllers, encoding operators' rules.</p></div>
+<div class="card fragment rise"><h4>Sendai subway</h4><p>Hitachi (1987): fuzzy automatic train operation — smoother braking and accurate stops.</p></div>
+<div class="card fragment rise"><h4>Container cranes</h4><p>Anti-sway control of the load (our Session 6 example).</p></div>
+<div class="card fragment rise"><h4>Consumer products</h4><p>Washing machines, rice cookers, camera autofocus, air conditioners.</p></div>
+<div class="card fragment rise"><h4>Automotive</h4><p>Automatic transmissions, ABS, cruise control.</p></div>
+<div class="card fragment rise"><h4>Robotics</h4><p>Mobile-robot navigation & obstacle avoidance, manipulator and UAV control, often neuro-fuzzy tuned.</p></div>
+</div>
+
+Note:
+Syllabus 3.5: case studies in industrial applications and robotics. Ask students which of these share a property: an expert operator exists and a model is hard. Answer: all of them.
+
+---
+
+## The challenge
+
+<div class="cols c-60-40">
+<div>
+
+A ball sits on a **conveyor belt** (CoppeliaSim). You command the **belt velocity**; the ball rides on it.
+
+- Belt spans **−0.75 m … 0.75 m** (ball falls off beyond!)
+- Bring the ball to a **target position**: 0.6 m, −0.6 m, 0 m
+- No overshoot past the edges, settle in **≈ 1.5 s**
+
+</div>
+<div>
+<svg viewBox="0 0 400 200" width="100%">
+<rect x="20" y="110" width="360" height="34" rx="17" fill="#2a2f3a"/>
+<g stroke="#4c5466" stroke-width="2"><line x1="50" y1="112" x2="50" y2="142"/><line x1="80" y1="112" x2="80" y2="142"/><line x1="110" y1="112" x2="110" y2="142"/><line x1="140" y1="112" x2="140" y2="142"/><line x1="170" y1="112" x2="170" y2="142"/><line x1="200" y1="112" x2="200" y2="142"/><line x1="230" y1="112" x2="230" y2="142"/><line x1="260" y1="112" x2="260" y2="142"/><line x1="290" y1="112" x2="290" y2="142"/><line x1="320" y1="112" x2="320" y2="142"/><line x1="350" y1="112" x2="350" y2="142"/>
+<animateTransform attributeName="transform" type="translate" values="0 0; 30 0" dur="0.8s" repeatCount="indefinite"/></g>
+<circle cx="150" cy="92" r="17" fill="#a8acd8"><animate attributeName="cx" values="120;320;320;120" keyTimes="0;0.45;0.6;1" dur="5s" repeatCount="indefinite"/></circle>
+<line x1="320" y1="40" x2="320" y2="105" stroke="#e07a1f" stroke-dasharray="5 4" stroke-width="2"/><text x="320" y="34" text-anchor="middle" font-family="Inter" font-size="14" font-weight="700" fill="#e07a1f">target</text>
+<text x="20" y="175" font-family="Inter" font-size="13" fill="#8a93a3">−0.75 m</text><text x="340" y="175" font-family="Inter" font-size="13" fill="#8a93a3">0.75 m</text>
+</svg>
+</div>
+</div>
+
+Note:
+Show the CoppeliaSim scene if available (controlBelt.ttt). The marks at ±0.5 and ±0.75 m come from the original screenshot.
+
+---
+
+<!-- .slide: class="checkpoint" data-background-color="#f3effc" -->
+
+<span class="tag violet">Design · think–pair–share · 5 min</span>
+
+## Choose inputs, terms and rules
+
+1. Which **inputs** do you need? Is the position error enough?
+2. How many **terms** per variable, and over what universe?
+3. Write the **rule table**.
+
+<div class="timer" data-seconds="300"></div>
+
+<details><summary>One possible design</summary>
+Inputs: error e = target − x ∈ [−1.5, 1.5] m and ball velocity v ∈ [−1, 1] m/s, each with {N, Z, P}. Output: belt velocity {NB, NS, Z, PS, PB} ∈ [−1, 1] m/s. Rules (PD-like): push toward the target; when already moving toward it, push less.</details>
+
+Note:
+5 minutes. Collect two different designs and compare them on the board.
+
+---
+
+## A PD-like rule table
+
+<table class="ruletab">
+<tr><th style="font-size:13px">e ↓ / v →</th><th>N</th><th>Z</th><th>P</th></tr>
+<tr><th>N</th><td class="given">NS</td><td class="given">NB</td><td class="given">NB</td></tr>
+<tr><th>Z</th><td class="given">PS</td><td class="given">Z</td><td class="given">NS</td></tr>
+<tr><th>P</th><td class="given">PB</td><td class="given">PB</td><td class="given">PS</td></tr>
+</table>
+
+<div class="cols" style="margin-top:20px">
+<div class="callout teal"><b>Read a rule:</b> IF the target is to the right (e = P) AND the ball already moves right (v = P) THEN move the belt only <b>PS</b> → braking before arrival.</div>
+<div class="callout">The 1-input version (only e) is a fuzzy P controller. Will it overshoot? Test it on the next slide.</div>
+</div>
+
+Note:
+Read one rule aloud. Ask students to justify the corner cells (N,N) and (P,P).
+
+---
+
+## Simulate before you code
+
+<div data-widget="conveyor"></div>
+
+Note:
+Press target 0.6 — compare to the plots in the original slides (rise to 0.6 in ~1.5 s, no overshoot).
+Turn velocity input OFF → more overshoot / slower settling (depending on width). Then narrow the Z(error) width: faster but may oscillate.
+Click on the belt to set any target. Try "random start" and target −0.6.
+
+---
+
+<!-- .slide: class="checkpoint" data-background-color="#f3effc" -->
+
+<span class="tag violet">Checkpoint 1</span>
+
+<div class="quiz" data-answer="c">
+<p class="q">Why does adding the velocity input reduce overshoot?</p>
+<div class="opts">
+<button class="opt" data-k="a">Because more rules always improve performance</button>
+<button class="opt" data-k="b">Because it increases the steady-state gain</button>
+<button class="opt" data-k="c">It adds anticipation (derivative / damping action): the controller brakes when the ball is already approaching</button>
+<button class="opt" data-k="d">It doesn't — the effect is random</button>
+</div>
+<div class="explain">Same idea as the pendulum's θ & ω rules: a fuzzy PD controller.</div>
+</div>
+
+Note:
+Answer C.
+
+---
+
+## CoppeliaSim + ZMQ remote API
+
+```bash
+pip install -U coppeliasim-zmqremoteapi-client
+```
+
+```python [1-4|6-12|14-22]
+from coppeliasim_zmqremoteapi_client import RemoteAPIClient
+client = RemoteAPIClient()                     # CoppeliaSim must be running
+sim = client.require('sim')
+ball, belt = sim.getObject('/Sphere'), sim.getObject('/ConveyorBelt')
+
+def set_belt_speed(v):
+    # The conveyor model reads its velocity from a custom-data table.
+    # Check the model script of YOUR CoppeliaSim version, e.g.:
+    sim.writeCustomTableData(belt, '__ctrl__', {'vel': v})
+
+target, prev_x, t_prev = 0.6, None, None
+sim.setStepping(True); sim.startSimulation()
+
+while sim.getSimulationTime() < 3.0:
+    t = sim.getSimulationTime()
+    x = sim.getObjectPosition(ball, -1)[0]     # x coordinate of the ball
+    v = 0 if prev_x is None else (x - prev_x) / max(t - t_prev, 1e-3)
+    u = flc(target - x, v)                     # your fuzzy controller (skfuzzy)
+    set_belt_speed(u)
+    prev_x, t_prev = x, t
+    sim.step()
+sim.stopSimulation()
+```
+
+Note:
+The ZMQ client is the only install needed. Belt-speed API varies by CoppeliaSim version/model (4.10 in the original screenshot); have students open the conveyor's script to find the exact call. Use stepping mode so the controller runs every simulation step.
+
+---
+
+## Lab deliverables
+
+1. Implement the FLC (skfuzzy `ControlSystem` or your own Mamdani from Session 7).
+2. Run targets **0.6, −0.6, 0** from different start positions. Plot $x(t)$.
+3. Compare **error-only** vs **error + velocity** rule bases.
+4. Tune MFs for settling time ≈ 1.5 s without the ball leaving the belt.
+5. *(Bonus)* Train a small ANFIS from logged (e, v) → u data of your best FLC and compare.
+
+<div class="callout teal">Report: control surface, responses, tuning decisions, and a short reflection on what was hard.</div>
+
+Note:
+Deliverables. Agree on the due date and grading rubric with the class.
+
+---
+
+<!-- .slide: class="divider" -->
+
+<div class="num">✓</div>
+
+# Module wrap-up
+
+Note:
+Section divider: module wrap-up (≈ 10 min).
+
+---
+
+## The whole module in one picture
+
+<div class="pipeline" style="justify-content:space-between">
+<div class="blk a1">Fuzzy sets<small>MFs, α-cuts, hedges</small></div><div class="arr">→</div>
+<div class="blk a1">Operations<small>min / max / 1−μ</small></div><div class="arr">→</div>
+<div class="blk a2">Relations<small>×, ∘</small></div><div class="arr">→</div>
+<div class="blk a2">Rules & GMP<small>B′ = A′ ∘ R</small></div><div class="arr">→</div>
+<div class="blk a3">Defuzzify<small>CoG, CoM, MoM</small></div><div class="arr">→</div>
+<div class="blk plant">Design · tune · learn<small style="color:#ccc">FLC, ANFIS</small></div>
+</div>
+
+Note:
+Use this slide to recall the session in which each block was covered.
+
+---
+
+<!-- .slide: class="checkpoint" data-background-color="#f3effc" -->
+
+<span class="tag violet">Final quiz · 1/3</span>
+
+<div class="quiz" data-answer="b">
+<p class="q">Which pair of classical laws does NOT hold for fuzzy sets with min/max/1−μ?</p>
+<div class="opts">
+<button class="opt" data-k="a">Commutativity and associativity</button>
+<button class="opt" data-k="b">Excluded middle and contradiction</button>
+<button class="opt" data-k="c">De Morgan's laws</button>
+<button class="opt" data-k="d">Idempotence and involution</button>
+</div>
+<div class="explain">A ∪ ¬A ≠ X and A ∩ ¬A ≠ ∅ when 0 &lt; μ &lt; 1.</div>
+</div>
+
+Note:
+Final quiz 1/3 — answer B.
+
+---
+
+<!-- .slide: class="checkpoint" data-background-color="#f3effc" -->
+
+<span class="tag violet">Final quiz · 2/3</span>
+
+<div class="quiz numeric" data-answer="0.4" data-tol="0.001">
+<p class="q">Rule: IF e is PS AND v is Z THEN u is PS. μ<sub>PS</sub>(e) = 0.4, μ<sub>Z</sub>(v) = 0.9. With min implication, at what height is the consequent “PS” cut?</p>
+<div class="explain">Firing strength = min(0.4, 0.9) = <b>0.4</b>.</div>
+</div>
+
+Note:
+Final quiz 2/3 — answer 0.4.
+
+---
+
+<!-- .slide: class="checkpoint" data-background-color="#f3effc" -->
+
+<span class="tag violet">Final quiz · 3/3</span>
+
+<div class="quiz" data-answer="d">
+<p class="q">Your FLC response is jerky: the actuator jumps between values as the error changes slowly. First thing to check?</p>
+<div class="opts">
+<button class="opt" data-k="a">The plant model</button>
+<button class="opt" data-k="b">The number of inputs</button>
+<button class="opt" data-k="c">The color of the plots</button>
+<button class="opt" data-k="d">The defuzzifier (MOM/SOM/LOM jump) and gaps/insufficient overlap between MFs</button>
+</div>
+<div class="explain">Use an area-based defuzzifier and make adjacent MFs overlap (≈ 50 %) so the control curve is continuous.</div>
+</div>
+
+Note:
+Final quiz 3/3 — answer D.
+
+---
+
+## Thank you — what's next
+
+<div class="cols">
+<div class="card"><h4>Practice</h4><p>Finish the conveyor belt lab and upload the report to Canvas.</p></div>
+<div class="card"><h4>Looking ahead</h4><p>Deep learning (topic 4) — you will recognise the gradient-based training we used in ANFIS.</p></div>
+</div>
+
+<br>
+
+<p class="muted">Dr. Gildardo Sánchez Ante · Tecnológico de Monterrey</p>
+
+Note:
+Close the module. Remind them about the lab report.
+</textarea>
+</section>
+</div></div>
+<script src="https://cdn.jsdelivr.net/npm/reveal.js@5.1.0/dist/reveal.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/reveal.js@5.1.0/plugin/markdown/markdown.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/reveal.js@5.1.0/plugin/highlight/highlight.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/reveal.js@5.1.0/plugin/notes/notes.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/reveal.js@5.1.0/plugin/math/math.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/reveal.js@5.1.0/plugin/zoom/zoom.js"></script>
+<script src="../assets/js/fuzzy.js"></script>
+<script src="../assets/js/deck.js"></script>
+</body>
+</html>

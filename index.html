@@ -1,0 +1,64 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Intelligent Control · TE3002B</title>
+<link rel="stylesheet" href="assets/css/theme.css">
+<style>
+  body { margin: 0; background: var(--paper); color: var(--ink); font-family: Inter, system-ui, sans-serif; }
+  main { max-width: 1080px; margin: 0 auto; padding: 56px 20px 80px; }
+  h1 { font-size: clamp(32px, 5vw, 52px); letter-spacing: -.03em; margin: 8px 0 6px; }
+  .lead { color: var(--ink-2); font-size: 18px; max-width: 720px; }
+  .week { margin-top: 38px; }
+  .week h2 { font-size: 15px; text-transform: uppercase; letter-spacing: .08em; color: var(--ink-3); margin: 0 0 12px; }
+  .grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 14px; }
+  a.deck { display: block; text-decoration: none; color: inherit; background: var(--card); border: 1px solid var(--line); border-radius: 14px; padding: 18px 20px; transition: transform .15s, border-color .15s; }
+  a.deck:hover { transform: translateY(-2px); border-color: var(--accent); }
+  a.deck .n { font: 700 13px 'JetBrains Mono', monospace; color: var(--accent); }
+  a.deck .t { font-weight: 700; font-size: 19px; margin: 4px 0; }
+  a.deck .d { color: var(--ink-2); font-size: 14px; line-height: 1.45; }
+  a.deck .s { margin-top: 8px; font-size: 12px; color: var(--accent-3); font-weight: 600; }
+  .keys { margin-top: 44px; font-size: 14px; color: var(--ink-2); background: var(--card); border: 1px dashed var(--line); border-radius: 12px; padding: 14px 18px; }
+  kbd { font: 600 12px 'JetBrains Mono', monospace; border: 1px solid var(--line); border-bottom-width: 2px; border-radius: 5px; padding: 1px 6px; background: #fff; }
+</style>
+</head>
+<body>
+<main>
+  <span class="tag">TE3002B · Implementación de robótica inteligente</span>
+  <h1>Module 3 · Intelligent Control</h1>
+  <p class="lead">Fuzzy and neuro-fuzzy control — interactive lecture decks with live widgets, checkpoints and speaker notes. 5 weeks · 2 sessions per week (120 min + 80 min).</p>
+
+  <section class="week"><h2>Week 1</h2><div class="grid">
+    <a class="deck" href="decks/01-intro-fuzzy-control.html"><div class="n">01 · S1 · 120 min</div><div class="t">Introduction to Fuzzy Control</div><div class="d">Conventional vs fuzzy control, when and why to use an FLC.</div><div class="s">+ deck 02 in the same session</div></a>
+    <a class="deck" href="decks/02-fuzzy-logic-basics.html"><div class="n">02 · S1</div><div class="t">Basic Concepts in Fuzzy Logic</div><div class="d">Crisp sets → fuzzy sets, membership functions, scikit-fuzzy.</div><div class="s">Widgets: crisp vs fuzzy · MF explorer</div></a>
+    <a class="deck" href="decks/03-fuzzy-set-operations.html"><div class="n">03 · S2 · 80 min</div><div class="t">Fuzzy Set Operations</div><div class="d">Union, intersection, complement, product, T-norms, laws that break.</div><div class="s">Widget: animated set operations</div></a>
+  </div></section>
+
+  <section class="week"><h2>Week 2</h2><div class="grid">
+    <a class="deck" href="decks/04-membership-functions.html"><div class="n">04 · S3 · 120 min</div><div class="t">Membership Functions</div><div class="d">Support, core, α-cuts, the five shapes, hedges, notation, choosing an MF.</div><div class="s">Widgets: α-cut explorer · hedges</div></a>
+    <a class="deck" href="decks/05-fuzzy-relations-rules.html"><div class="n">05 · S4 · 80 min</div><div class="t">Fuzzy Relations, Rules & Reasoning</div><div class="d">Relations, IF–THEN rules, generalized modus ponens.</div><div class="s">Widgets: relation ops · GMP</div></a>
+  </div></section>
+
+  <section class="week"><h2>Week 3</h2><div class="grid">
+    <a class="deck" href="decks/06-practicing-fuzzy-relations.html"><div class="n">06 · S5 · 120 min</div><div class="t">Practicing Fuzzy Relations</div><div class="d">Cartesian product, max-min composition, linguistic variables, fuzzy modus ponens.</div><div class="s">Widgets: heat-map · composition stepper · GMP</div></a>
+    <a class="deck" href="decks/07-fuzzy-inference-examples.html"><div class="n">07 · S6 · 80 min</div><div class="t">Fuzzy Inference Systems in Action</div><div class="d">Inverted pendulum, driving speed, container crane.</div><div class="s">Widgets: step-by-step Mamdani FIS · rule table</div></a>
+  </div></section>
+
+  <section class="week"><h2>Week 4</h2><div class="grid">
+    <a class="deck" href="decks/08-defuzzification.html"><div class="n">08 · S7 · 120 min</div><div class="t">Defuzzification</div><div class="d">Maxima methods, weighted average, centroid, center of sums.</div><div class="s">Widget: defuzzification explorer · + deck 09</div></a>
+    <a class="deck" href="decks/09-fuzzy-control-printer.html"><div class="n">09 · S7 · lab</div><div class="t">Fuzzy Control Exercise: Printer Head</div><div class="d">A complete 1-input FLC, singleton inference, control curve.</div><div class="s">Widget: control curve + closed loop</div></a>
+    <a class="deck" href="decks/10-tuning-flc.html"><div class="n">10 · S8 · 80 min · lab</div><div class="t">Tuning a Fuzzy Controller</div><div class="d">P vs fuzzy, MF widths, number of terms, defuzzifiers.</div><div class="s">Widget: tuning simulator</div></a>
+  </div></section>
+
+  <section class="week"><h2>Week 5</h2><div class="grid">
+    <a class="deck" href="decks/11-neuro-fuzzy-anfis.html"><div class="n">11 · S9 · 120 min</div><div class="t">Neuro-Fuzzy Systems: ANFIS</div><div class="d">Sugeno models, ANFIS architecture, hybrid learning.</div><div class="s">Widget: live ANFIS training</div></a>
+    <a class="deck" href="decks/12-conveyor-belt-case-study.html"><div class="n">12 · S10 · 80 min</div><div class="t">Controlling a Conveyor Belt</div><div class="d">Industrial case studies, CoppeliaSim lab, module wrap-up.</div><div class="s">Widget: conveyor simulator</div></a>
+  </div></section>
+
+  <div class="keys">
+    <b>Presenter keys:</b> <kbd>S</kbd> speaker notes · <kbd>F</kbd> full screen · <kbd>Esc</kbd> overview · <kbd>B</kbd> black screen · <kbd>Alt</kbd>+click zoom · append <code>?print-pdf</code> to the URL to export PDF.
+  </div>
+</main>
+</body>
+</html>

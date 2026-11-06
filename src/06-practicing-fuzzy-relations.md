@@ -1,0 +1,330 @@
+<!-- .slide: class="title" -->
+
+<span class="tag">TE3002B · Module 3 · Session 5</span>
+
+# Practicing Fuzzy Relations
+
+<p class="sub">Cartesian products, compositions, linguistic variables and fuzzy modus ponens — hands on</p>
+
+<div class="agenda"><span>1 · Cartesian product</span><span>2 · Max-min composition</span><span>3 · Set ∘ relation</span><span>4 · Linguistic variables</span><span>5 · “Pedro studies very little…”</span></div>
+
+<p class="meta">Dr. Gildardo Sánchez Ante · Tecnológico de Monterrey</p>
+
+Note:
+Session 5 (120 min). Workshop format: short concept → widget → Python task. Students work in pairs with Jupyter.
+
+---
+
+<!-- .slide: class="checkpoint" -->
+
+<span class="tag violet">Retrieval</span>
+
+<div class="quiz" data-answer="c">
+<p class="q">In the generalized modus ponens with R = A × B, the conclusion B′ is obtained by…</p>
+<div class="opts">
+<button class="opt" data-k="a">B′ = A′ ∪ B</button>
+<button class="opt" data-k="b">B′ = B − A′</button>
+<button class="opt" data-k="c">clipping B at w = max<sub>x</sub> min(A′(x), A(x))</button>
+<button class="opt" data-k="d">B′ = A′ × B</button>
+</div>
+<div class="explain">B′ = A′ ∘ R, which for R = A × B reduces to min(w, B(y)).</div>
+</div>
+
+Note:
+Retrieval question (1 min) to activate last session's GMP.
+
+---
+
+<!-- .slide: class="divider" -->
+
+<div class="num">01</div>
+
+# Cartesian product of fuzzy sets
+
+Note:
+Section divider. ≈ 25 min: Cartesian product with the bookstore example.
+
+---
+
+## Problem: a bookstore
+
+Relation between **book sales** and the **diversity of books on the shelf**:
+
+| Set | Function | Parameters |
+|---|---|---|
+| A = moderate sales | Generalized bell | a = 20, b = 3, x₀ = 50 |
+| B = diversity offered | Sigmoid | a = 0.01, y₀ = 500 |
+| Universe x = [1, 100] | books sold per month | |
+| Universe y = [1, 1000] | books on shelf | |
+
+<div class="m">$$ \mu_{A\times B}(x,y) = \min\big(\mu_A(x),\ \mu_B(y)\big) $$</div>
+
+<p class="small">Remember: since it is a <b>relation</b>, the result lives on a 2-D domain → a surface (or a heat-map).</p>
+
+Note:
+Read the table aloud. Ask: 'what does a point (x, y) with high μ mean for the bookstore?' before showing the widget.
+
+---
+
+## Explore the product
+
+<div data-widget="cartesian"></div>
+
+Note:
+Hover over different regions. Interpretation: the relation is high only where sales are moderate (~35–65 / month) AND diversity is high (> ~600 books). Toggle min vs product: product gives a smoother, lower surface.
+Ask: "How do we interpret the result?" — a store with moderate sales AND large diversity is strongly in the relation "moderately-selling diverse store".
+
+---
+
+## The code
+
+```python [1-7|9-11|13-18]
+import numpy as np, skfuzzy as fuzz, matplotlib.pyplot as plt
+
+xA = np.arange(1, 101)                      # sales
+xB = np.arange(1, 1001)                     # books on shelf
+mA = fuzz.gbellmf(xA, 20, 3, 50)
+mB = fuzz.sigmf(xB, 500, 0.01)              # skfuzzy: (x, center, slope)
+def cartesian(a, b): return np.fmin.outer(a, b)
+
+R_AB = cartesian(mA, mB)
+A, B = np.meshgrid(xA, xB, indexing='ij')
+print(R_AB.shape)                           # (100, 1000)
+
+fig = plt.figure()
+ax = fig.add_subplot(projection='3d')
+ax.plot_surface(A, B, R_AB, cmap=plt.cm.hot)
+ax.set_zlim(0, 1)
+ax.set_xlabel('sales'); ax.set_ylabel('shelf'); ax.set_zlabel('mu')
+plt.show()
+```
+
+Note:
+Students run this in Jupyter. np.fmin.outer replaces the original 'cartesian' helper. Watch out: skfuzzy.sigmf takes (x, center, slope).
+
+---
+
+<!-- .slide: class="divider" -->
+
+<div class="num">02</div>
+
+# Composition of fuzzy relations
+
+Note:
+Section divider. ≈ 25 min: max-min composition.
+
+---
+
+## Max-min composition
+
+<div class="m">$$ (R_1\circ R_2)(x,z) = \max_{y}\ \min\big(R_1(x,y),\ R_2(y,z)\big) $$</div>
+
+<div class="cols">
+<div class="card fragment rise"><h4>Like a matrix product…</h4><p>row of R₁ × column of R₂</p></div>
+<div class="card fragment rise"><h4>…but with different operators</h4><p>multiply → <b>min</b> · sum → <b>max</b></p></div>
+</div>
+
+<p class="fragment rise callout teal" style="margin-top:20px">Meaning: x is related to z as strongly as the <b>strongest chain</b> x → y → z, where each chain is as strong as its <b>weakest link</b>.</p>
+
+Note:
+Analogy to matrix product helps a lot. Write one entry by hand on the board before the widget.
+
+---
+
+## Step through it
+
+<div data-widget="composition"></div>
+
+Note:
+Press Step a few times slowly, asking the class for each result before the cell appears. Then Run. Switch to max-product to compare: product composition gives values ≤ max-min.
+
+---
+
+<!-- .slide: class="checkpoint" -->
+
+<span class="tag violet">Checkpoint 1</span>
+
+<div class="quiz numeric" data-answer="0.8" data-tol="0.001">
+<p class="q">Using R₁ and R₂ from the previous slide, compute (R₁ ∘ R₂)(x₃, z₅) with max-min. Row x₃ = [0.9, 0.7, 0.8]; column z₅ = [0, 0.3, 0.8].</p>
+<div class="explain">min(0.9, 0) = 0 · min(0.7, 0.3) = 0.3 · min(0.8, 0.8) = 0.8 → max = <b>0.8</b>.</div>
+</div>
+
+Note:
+Answer 0.8. Have students verify it with the stepper (Step until x3, z5).
+
+---
+
+## In Python
+
+```python
+import numpy as np
+
+def compose(R1, R2):
+    """max-min composition of two fuzzy relations given as matrices."""
+    return np.max(np.fmin(R1[:, :, None], R2[None, :, :]), axis=1)
+
+R1 = np.array([[0.4, 1.0, 0.2],
+               [0.1, 0.0, 0.5],
+               [0.9, 0.7, 0.8]])
+R2 = np.array([[1.0, 0.6, 0.5, 0.4, 0.0],
+               [0.4, 0.8, 0.7, 0.3, 0.3],
+               [0.5, 1.0, 0.5, 0.2, 0.8]])
+print(compose(R1, R2))
+# [[0.4 0.8 0.7 0.4 0.3]
+#  [0.5 0.5 0.5 0.2 0.5]
+#  [0.9 0.8 0.7 0.4 0.8]]
+```
+
+<p class="small">Challenge: write <code>compose_prod</code> for max-product. Broadcasting does the triple loop for you.</p>
+
+Note:
+Broadcasting trick: R1[:, :, None] vs R2[None, :, :] builds all (x, y, z) triples at once. The printed result matches the original slide.
+
+---
+
+## Composition of a set with a relation
+
+<div class="pipeline">
+<div class="blk a1">A(x)</div><div class="arr">×</div><div class="blk a1">B(y)</div><div class="arr">=</div><div class="blk a2">R = A × B</div>
+</div>
+<div class="pipeline" style="margin-top:14px">
+<div class="blk a3">A′(x)</div><div class="arr">∘</div><div class="blk a2">R</div><div class="arr">=</div><div class="blk plant">B′(y) = A′ ∘ R</div>
+</div>
+
+<br>
+
+| Set | Function | Parameters |
+|---|---|---|
+| A(x) | Sigmoid | a = 15, x₀ = 0.5 |
+| B(y) | Sigmoid | a = −3, y₀ = 2.5 |
+| A′(x) | Gaussian | σ = 0.04, x₀ = 0.5 |
+| Universes | x = [0, 1] | y = [1, 5] |
+
+Note:
+Same pipeline as GMP, now computed numerically. The table reproduces the parameters of the original exercise.
+
+---
+
+## Try it: what does B′ look like?
+
+<div data-widget="gmp" data-x="0,1" data-y="1,5" data-a="sig,15,0.5" data-b="sig,-3,2.5" data-ap="gauss,0.5,0.04" data-labels="x|y"></div>
+
+Note:
+Expected: B′ is B clipped at ≈ 0.6 (a plateau of ~0.6 that then follows B down) — exactly the figure in the original slides.
+Why 0.6 and not 0.5? Because the narrow Gaussian A′ crosses the rising sigmoid A slightly to the right of 0.5.
+
+---
+
+<!-- .slide: class="divider" -->
+
+<div class="num">03</div>
+
+# Linguistic variables
+
+Note:
+Section divider. ≈ 15 min: linguistic variables.
+
+---
+
+## A linguistic variable is a 5-tuple
+
+<div class="m">$$ (x,\ X,\ T(x),\ G,\ M) $$</div>
+
+<div class="cols">
+<div>
+
+- $x$ — name / label
+- $X$ — universe of discourse
+- $T(x)$ — the linguistic values (terms)
+- $G$ — syntactic rule that generates the terms
+- $M$ — semantic rule: the meaning (MF) of each term
+
+</div>
+<div class="card">
+<h4>Example: playing soccer ⚽</h4>
+<p>x: ball possession · X: [0, 90] minutes</p>
+<p>T = {almost_nothing, little, balanced, big, almost_all}</p>
+<p>M(almost_nothing) = sigmoid(−0.3, 20)<br>M(little) = gauss(9, 25) · M(balanced) = gauss(9, 45) · M(big) = gauss(9, 65)<br>M(almost_all) = sigmoid(0.3, 70)</p>
+</div>
+</div>
+
+Note:
+Explain G with an example: the grammar that generates 'very little', 'more or less big'… M gives each term an MF.
+
+---
+
+<!-- .slide: class="checkpoint" -->
+
+<span class="tag violet">Checkpoint 2 · 5 min in pairs</span>
+
+## Plot the soccer variable
+
+Write the code, then answer: **how much is 50 minutes of possession “balanced” and “big”?**
+
+<div class="timer" data-seconds="300"></div>
+
+<details><summary>Answer</summary>
+gauss(σ = 9, c = 45) at 50 → e^(−25/162) ≈ <b>0.86</b> balanced · gauss(9, 65) at 50 → e^(−225/162) ≈ <b>0.25</b> big.</details>
+
+Note:
+5 minutes in pairs. Answers in the dropdown: 0.86 and 0.25.
+
+---
+
+<!-- .slide: class="divider" -->
+
+<div class="num">04</div>
+
+# Fuzzy reasoning with IF–THEN rules
+
+Note:
+Section divider. ≈ 25 min: the 'study a lot' rule.
+
+---
+
+## “If I study a lot, then I will be an excellent student”
+
+| Linguistic value | MF | Universe |
+|---|---|---|
+| study a lot | sigmoid(a = 3, c = 2) | x ∈ [0, 8] daily hours |
+| excellent student | sigmoid(a = 3, c = 8) | y ∈ [0, 10] grade average |
+
+1. Compute the rule as a relation $R = A\times B$ and plot it.
+2. **How do we interpret it?** The rule is strongly “active” only for (many hours, high grades).
+
+<div class="callout teal fragment rise">Fuzzy modus ponens: &nbsp; Fact x is A′ &nbsp;·&nbsp; Rule R = A × B &nbsp;⇒&nbsp; <b>B′ = A′ ∘ R</b></div>
+
+Note:
+Students compute R = A × B in Python (same code as the bookstore). The interpretation question is the important part.
+
+---
+
+## “Pedro studies just very little” — what can we conclude?
+
+<div data-widget="gmp" data-x="0,8" data-y="0,10" data-a="sig,3,2" data-b="sig,3,8" data-ap="gauss,0.5,0.4" data-labels="daily study hours|grade average"></div>
+
+Note:
+Model "studies very little" as a Gaussian around 0.5 h. The match with "study a lot" is low → the conclusion is "excellent student" clipped at a low level: we can conclude very little about Pedro being excellent.
+Move A' to 4–6 hours (a diligent student) — the conclusion becomes strong.
+Discussion: the rule says nothing about what happens if you DON'T study a lot — B' never says "bad student". That is a property of Mamdani implication.
+
+---
+
+<!-- .slide: class="checkpoint" -->
+
+<span class="tag violet">Exit ticket</span>
+
+<div class="quiz" data-answer="a">
+<p class="q">Pedro studies very little. Using only the rule “IF study a lot THEN excellent”, our fuzzy conclusion B′ is…</p>
+<div class="opts one">
+<button class="opt" data-k="a">“Excellent” clipped at a small height — the rule barely applies, so we learn little</button>
+<button class="opt" data-k="b">“Not excellent” — Pedro will fail</button>
+<button class="opt" data-k="c">“Excellent” with full membership</button>
+<button class="opt" data-k="d">Undefined — GMP needs A′ = A exactly</button>
+</div>
+<div class="explain">GMP only <b>propagates</b> the rule to the degree the fact matches the antecedent. To conclude “bad student” you need another rule!</div>
+</div>
+
+Note:
+Answer A. Stress: a single rule can't conclude the opposite. You need a complete rule base.
+

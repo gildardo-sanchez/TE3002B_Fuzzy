@@ -1,0 +1,379 @@
+<!-- .slide: class="title" -->
+
+<span class="tag">TE3002B · Module 3 · Session 4</span>
+
+# Fuzzy Relations, Rules & Reasoning
+
+<p class="sub">From sets to IF–THEN knowledge</p>
+
+<div class="agenda"><span>1 · Fuzzy relations</span><span>2 · Union & intersection of relations</span><span>3 · IF–THEN rules</span><span>4 · Generalized modus ponens</span></div>
+
+<p class="meta">Dr. Gildardo Sánchez Ante · Tecnológico de Monterrey</p>
+
+Note:
+Session 4 (80 min). Mostly theory; next session (deck 06) is the practice counterpart.
+
+---
+
+## So far…
+
+<div class="pipeline">
+<div class="blk a1">Fuzzy sets ✓</div><div class="arr">→</div>
+<div class="blk a1">Operations ✓</div><div class="arr">→</div>
+<div class="blk a1">Membership functions ✓</div><div class="arr">→</div>
+<div class="blk a2">Relations & rules<small>today</small></div><div class="arr">→</div>
+<div class="blk" style="opacity:.5">Inference systems</div>
+</div>
+
+<br>
+
+**Why fuzzy rules?** Fuzzy rules and fuzzy reasoning are the backbone of **fuzzy inference systems** — the most important modelling tool in the field, used in:
+
+<div class="cols c3" style="margin-top:10px">
+<div class="card"><p>automatic control</p></div><div class="card"><p>expert systems</p></div><div class="card"><p>pattern recognition & data classification</p></div>
+</div>
+
+Note:
+Orientation slide (1 min). Show where today's topic sits in the pipeline.
+
+---
+
+<!-- .slide: class="divider" -->
+
+<div class="num">01</div>
+
+# Fuzzy relations
+
+Note:
+Section divider. ≈ 25 min block: relations and their operations.
+
+---
+
+## What is a fuzzy relation?
+
+<div class="cols">
+<div>
+
+- A **fuzzy set on pairs**: it assigns a degree in $[0,1]$ to each pair $(x,y)$.
+- “Everything is related to *some* degree.”
+
+<div class="m">$$ R : A \times B \rightarrow [0,1] $$</div>
+
+</div>
+<div>
+
+<span class="tag">Examples</span>
+
+- “$x$ and $y$ are **almost the same**”
+- “$z$ is **much bigger** than $w$”
+- “IF temperature is **hot** AND humidity is **high** THEN fan speed is **fast**”
+
+</div>
+</div>
+
+<p class="fragment rise callout teal">A crisp relation answers “are they related?” with yes/no. A fuzzy relation answers “<b>how much</b>?”.</p>
+
+Note:
+A fuzzy relation is just a fuzzy set whose universe is a Cartesian product. Rules will be represented as relations later today.
+
+---
+
+## Build it with me: “approximately equal” on U = {1, 2, 3}
+
+<div class="cols">
+<div>
+
+- <span class="fragment rise">$R(1,1)=R(2,2)=R(3,3)=$ <span class="fragment">**1**</span></span>
+- <span class="fragment rise">$R(1,2)=R(2,1)=R(2,3)=R(3,2)=$ <span class="fragment">**0.8**</span></span>
+- <span class="fragment rise">$R(1,3)=R(3,1)=$ <span class="fragment">**0.3**</span></span>
+
+<div class="fragment rise m">$$ R(u,v)=\begin{cases}1 & u=v\\ 0.8 & |u-v|=1\\ 0.3 & |u-v|=2\end{cases} $$</div>
+
+</div>
+<div class="fragment rise">
+
+<div class="m">$$ R=\begin{bmatrix}1.0&0.8&0.3\\0.8&1.0&0.8\\0.3&0.8&1.0\end{bmatrix} $$</div>
+
+<p class="small">Symmetric and reflexive — properties we expect from “approximately equal”.</p>
+
+</div>
+</div>
+
+Note:
+Ask the class for each value before showing it (the numbers appear one fragment later). Technical note: the cases formula is inside a .m div so the markdown does not eat the backslashes.
+
+---
+
+## Union and intersection of relations
+
+Same idea as for sets, but **element-wise on the matrix**:
+
+<div class="m">$$ (R\cup S)(x,y)=\max\big(R(x,y),\,S(x,y)\big) \qquad (R\cap S)(x,y)=\min\big(R(x,y),\,S(x,y)\big) $$</div>
+
+<div data-widget="relation-ops"></div>
+
+Note:
+R = "x is considerably larger than y", S = "x is very close to y". Union = "larger OR close"; intersection = "larger AND close".
+Run Union first (slow), then Intersection.
+Note: the original slide shows 0.7 for (x1, y4) in R ∩ S; the correct value is min(0.7, 0.6) = 0.6. The widget computes it correctly — a nice "spot the error" moment for students.
+
+---
+
+<!-- .slide: class="checkpoint" -->
+
+<span class="tag violet">Checkpoint 1</span>
+
+<div class="quiz numeric" data-answer="0.6" data-tol="0.001">
+<p class="q">With R(x1, y4) = 0.7 and S(x1, y4) = 0.6, what is (R ∩ S)(x1, y4)?</p>
+<div class="explain">min(0.7, 0.6) = <b>0.6</b>.</div>
+</div>
+
+<br>
+
+<div class="quiz" data-answer="c">
+<p class="q">In plain words, (R ∩ S)(x, y) high means…</p>
+<div class="opts">
+<button class="opt" data-k="a">x is larger than y or close to y</button>
+<button class="opt" data-k="b">x is neither larger nor close</button>
+<button class="opt" data-k="c">x is both considerably larger than y and very close to y</button>
+<button class="opt" data-k="d">x equals y</button>
+</div>
+<div class="explain">Intersection ↔ AND. Few pairs satisfy both well — that's why the matrix has small values.</div>
+</div>
+
+Note:
+Two quick checks. The numeric one also catches the typo in the original slide (0.7 vs 0.6).
+
+---
+
+## Exercise — compute the relation matrix
+
+$X=\lbrace 1,2,3\rbrace$, $Y=\lbrace 1,2,3,4\rbrace$, relation “$y$ is **somewhat bigger** than $x$”:
+
+<div class="m">$$ \mu_R(x,y)=\begin{cases} \min\!\left(1,\ \frac{y-x}{2}\right) & y>x\\ 0 & \text{otherwise}\end{cases} $$</div>
+
+<div class="timer" data-seconds="180"></div>
+
+<details><summary>Solution</summary>
+Rows x = 1, 2, 3; columns y = 1…4:
+[0, 0.5, 1, 1] · [0, 0, 0.5, 1] · [0, 0, 0, 0.5]</details>
+
+Note:
+3-minute pen-and-paper exercise. Students often forget the min(1, ·) saturation.
+
+---
+
+<!-- .slide: class="divider" -->
+
+<div class="num">02</div>
+
+# Fuzzy rules
+
+Note:
+Section divider. ≈ 20 min block on rules.
+
+---
+
+## Human knowledge builds rules
+
+<div class="cols">
+<div>
+
+Should you take an umbrella?
+
+- 70 % chance of rain.
+- An umbrella keeps you dry.
+- If it rains, you get wet.
+- If you get wet, you'll be uncomfortable at work.
+
+<p class="fragment rise">→ You <b>reason</b> to take the umbrella.</p>
+
+</div>
+<div class="fragment rise">
+
+A fuzzy rule:
+
+<div class="big" style="font-size:1.3em">IF <span class="a">x is A</span> THEN <span class="c">y is B</span></div>
+
+- <span class="a">x is A</span> — **antecedent** (premise)
+- <span class="c">y is B</span> — **consequent** (conclusion)
+- A, B — **linguistic values** (fuzzy sets)
+
+</div>
+</div>
+
+Note:
+Umbrella example from the original deck: highlight that humans chain rules naturally — that's what an inference engine automates.
+
+---
+
+## Examples of rules
+
+<div class="cols">
+<div>
+
+- IF pressure is **high**, THEN volume is **small**.
+- IF the road is **slippery**, THEN driving is **dangerous**.
+- IF service is **good**, THEN tip is **average**.
+- IF speed is **high**, THEN apply the brake **a little**.
+
+</div>
+<div>
+
+**Multi-part** antecedents/consequents:
+
+- IF sky is **gray** AND wind is **strong** AND barometer is **falling**, THEN …
+- IF temperature is **cold**, THEN hot-water valve is **open** AND cold-water valve is **shut**.
+
+</div>
+</div>
+
+Note:
+Ask students to invent one rule for a robot they built (line follower, mobile robot…). Write two or three on the board.
+
+---
+
+## Processing an IF–THEN rule
+
+<div class="pipeline" style="flex-wrap:wrap;gap:12px">
+<div class="blk a1 fragment rise">1 · Read the antecedent</div><div class="arr fragment rise">→</div>
+<div class="blk a1 fragment rise">2 · Fuzzify the input</div><div class="arr fragment rise">→</div>
+<div class="blk a2 fragment rise">3 · Apply fuzzy operators<small>AND / OR</small></div>
+</div>
+<div class="pipeline" style="flex-wrap:wrap;gap:12px;margin-top:16px">
+<div class="arr fragment rise">→</div><div class="blk a2 fragment rise">4 · Apply the result to the consequent<small>implication</small></div><div class="arr fragment rise">→</div>
+<div class="blk a3 fragment rise">5 · Fuzzy output set</div><div class="arr fragment rise">→</div>
+<div class="blk plant fragment rise">6 · Defuzzify</div>
+</div>
+
+<p class="fragment rise callout teal" style="margin-top:24px">Steps 1–5 are <b>fuzzy reasoning</b>. Step 6 turns words back into a number the actuator understands.</p>
+
+Note:
+Reveal step by step. Point out that steps 1–5 stay in the 'fuzzy world' and step 6 returns to numbers.
+
+---
+
+<!-- .slide: class="checkpoint" -->
+
+<span class="tag violet">Checkpoint 2 · order the steps</span>
+
+<div class="quiz" data-answer="d">
+<p class="q">“IF speed is high AND road is wet THEN brake firmly”. Speed = 0.7 high, road = 0.4 wet. What happens in step 4?</p>
+<div class="opts">
+<button class="opt" data-k="a">The output “firmly” is used at full strength</button>
+<button class="opt" data-k="b">We add 0.7 + 0.4 and clip “firmly” at 1</button>
+<button class="opt" data-k="c">We defuzzify “firmly” immediately</button>
+<button class="opt" data-k="d">The consequent “firmly” is limited (clipped) to degree min(0.7, 0.4) = 0.4</button>
+</div>
+<div class="explain">Step 3 gives the <b>firing strength</b> (0.4). Step 4 (implication) cuts the consequent fuzzy set at that height.</div>
+</div>
+
+Note:
+Answer D. If students choose B, remind them AND → min, never a sum.
+
+---
+
+<!-- .slide: class="divider" -->
+
+<div class="num">03</div>
+
+# Fuzzy reasoning
+
+Note:
+Section divider. ≈ 20 min: generalized modus ponens.
+
+---
+
+## From modus ponens to fuzzy reasoning
+
+<div class="cols">
+<div class="card">
+<h4>Classic modus ponens</h4>
+
+Fact: **A** is true<br>Rule: **A → B**<br>———————<br>Conclusion: **B** is true
+
+<p class="small">“The apple is red” and “if red then ripe” ⇒ “the apple is ripe”.</p>
+</div>
+<div class="card" style="border-color:var(--accent-3)">
+<h4 style="color:var(--accent-3)">Generalized modus ponens (GMP)</h4>
+
+Fact: x is **A′**<br>Rule: if x is **A** then y is **B**<br>———————<br>Conclusion: y is **B′**
+
+<p class="small">A′ is <i>close</i> to A, so B′ is <i>close</i> to B. This is <b>approximate reasoning</b>.</p>
+</div>
+</div>
+
+Note:
+Classic vs generalized modus ponens. Key word: 'close to'. In classical logic the fact must match the antecedent exactly.
+
+---
+
+## Definition
+
+Express the rule $A\rightarrow B$ as a fuzzy relation $R$ on $X\times Y$ (e.g. $R=A\times B$ with min). Then:
+
+<div class="m">$$ \mu_{B'}(y) = \max_x \min\big(\mu_{A'}(x),\ \mu_R(x,y)\big) \qquad\Longleftrightarrow\qquad B' = A' \circ R $$</div>
+
+<div class="fragment rise">
+With $R=A\times B$ (Mamdani), this simplifies to a two-step recipe:
+
+<div class="m">$$ w = \max_x \min\big(\mu_{A'}(x),\mu_A(x)\big) \qquad \mu_{B'}(y)=\min\big(w,\ \mu_B(y)\big) $$</div>
+
+<p class="small"><b>w</b> = degree of match between fact and rule (“firing strength”) → it <b>clips</b> the consequent.</p>
+</div>
+
+Note:
+The max over x of the min is the "height of the intersection" of A' and A. Next slide shows it visually.
+
+---
+
+## Watch GMP happen
+
+<div data-widget="gmp" data-x="0,1" data-y="1,5" data-a="sig,15,0.5" data-b="sig,-3,2.5" data-ap="gauss,0.5,0.04" data-labels="x|y"></div>
+
+Note:
+A = sig(15, 0.5), B = sig(−3, 2.5), A' = gaussian centred at 0.5, σ = 0.04 — exactly the example of next session.
+Move A' to the right: the match w grows → B' grows. Move it left: w shrinks → B' shrinks. Make A' wide: the match increases.
+
+---
+
+## One rule, several antecedents, several rules
+
+<div class="cols">
+<div class="card">
+<h4>Multiple antecedents</h4>
+<p>Fact: x is A′ and y is B′ — Rule: if x is A and y is B then z is C</p>
+<p>w = T-norm( match(A′,A), match(B′,B) ) → clip C</p>
+</div>
+<div class="card">
+<h4>Multiple rules</h4>
+<p>Each rule i gives Cᵢ′ clipped at wᵢ</p>
+<p>C′ = C₁′ ∪ C₂′ ∪ … (max = <b>aggregation</b>)</p>
+</div>
+</div>
+
+<div class="fragment rise callout teal" style="margin-top:22px">This is the complete Mamdani inference engine. In Session 6 you'll see it working, step by step, on real controllers.</div>
+
+Note:
+This slide summarises the complete Mamdani engine in words. It is the bridge to deck 07.
+
+---
+
+<!-- .slide: class="checkpoint" -->
+
+<span class="tag violet">Exit ticket</span>
+
+<div class="quiz" data-answer="b">
+<p class="q">Rule 1 fires with w₁ = 0.2 (→ Slow), Rule 2 with w₂ = 0.7 (→ Fast). The aggregated output is…</p>
+<div class="opts one">
+<button class="opt" data-k="a">Only “Fast”, because it has the larger strength</button>
+<button class="opt" data-k="b">max( Slow clipped at 0.2 , Fast clipped at 0.7 )</button>
+<button class="opt" data-k="c">min( Slow clipped at 0.2 , Fast clipped at 0.7 )</button>
+<button class="opt" data-k="d">The average of 0.2 and 0.7</button>
+</div>
+<div class="explain">All rules contribute; aggregation is the union (max) of the clipped consequents. Defuzzification will then find the “compromise”.</div>
+</div>
+
+Note:
+Answer B. All rules contribute through max-aggregation.
+

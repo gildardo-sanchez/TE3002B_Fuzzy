@@ -1,0 +1,391 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Basic Concepts in Fuzzy Logic · TE3002B</title>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/reveal.js@5.1.0/dist/reset.css">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/reveal.js@5.1.0/dist/reveal.css">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/reveal.js@5.1.0/dist/theme/white.css">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/reveal.js@5.1.0/plugin/highlight/monokai.css">
+<link rel="stylesheet" href="../assets/css/theme.css">
+</head>
+<body>
+<a href="../index.html" style="position:fixed;bottom:14px;left:18px;z-index:30;font:600 13px Inter,sans-serif;color:#8a93a3;text-decoration:none">← all sessions</a>
+<div class="reveal"><div class="slides">
+<section data-markdown data-separator="^---$" data-separator-notes="^Note:">
+<textarea data-template>
+<!-- .slide: class="title" -->
+
+<span class="tag">TE3002B · Module 3 · Session 1 (part 2)</span>
+
+# Basic Concepts in Fuzzy Logic
+
+<p class="sub">From crisp sets to sets with <em>degrees</em> of membership</p>
+
+<div class="agenda"><span>1 · Classic set theory</span><span>2 · Why crisp is not enough</span><span>3 · Fuzzy sets & membership functions</span><span>4 · scikit-fuzzy</span></div>
+
+<p class="meta">Dr. Gildardo Sánchez Ante · Tecnológico de Monterrey</p>
+
+Note:
+≈ 70 min. Second half of Session 1. Students need a laptop with Python for the last 20 minutes.
+
+---
+
+## Fuzzy sets, fuzzy logic and the rule base
+
+- Fuzzy sets and fuzzy logic **quantify heuristically** the meaning of the linguistic variables, values and rules that an expert specifies.
+- Fuzzy logic is based on **fuzzy set theory** — a *generalization* of classical set theory.
+
+<div class="fragment rise callout teal">Plan: refresh the classical definitions first, then relax one assumption — membership is <b>all-or-nothing</b>.</div>
+
+Note:
+Emphasize "generalization": every crisp set is a fuzzy set whose membership happens to be 0 or 1.
+
+---
+
+<!-- .slide: class="divider" -->
+
+<div class="num">01</div>
+
+# Classic (crisp) set theory
+
+Note:
+Section divider. ≈ 10 min of fast review — most students saw sets in discrete math. Keep the pace high.
+
+---
+
+## Sets and notation
+
+<div class="cols">
+<div>
+
+A **set** is an unordered collection of zero or more *distinct* objects.
+
+- Listing: $S=\lbrace a,b,c \rbrace$
+- Set-builder: $\lbrace x \mid P(x) \rbrace$ — “all $x$ such that $P(x)$”
+- e.g. $\lbrace x \mid x\in\mathbb{Z},\ 0<x<5 \rbrace = \lbrace 1,2,3,4 \rbrace$
+
+</div>
+<div>
+
+<span class="fragment rise">**Membership:** $x\in S$ “x is in S”, $x\notin S$ otherwise.</span>
+
+<span class="fragment rise">**Equality:** $S=T \iff \forall x~(x\in S \leftrightarrow x\in T)$</span>
+
+<span class="fragment rise">**Cardinality:** $|A|$ = number of distinct elements. $|\lbrace 1,2,3,4,5\rbrace| = 5$</span>
+
+</div>
+</div>
+
+Note:
+Quick review — most students know this. Spend ≤ 5 minutes.
+
+---
+
+## Basic properties — quick fire
+
+<div class="cols">
+<div>
+
+- Sets are **unordered**: $\lbrace a,b,c\rbrace = \lbrace c,a,b\rbrace$
+- Elements are **distinct**: $\lbrace a,a,b,c,c\rbrace = \lbrace a,b,c\rbrace$
+- Sets may be **infinite**: $\mathbb{N},\ \mathbb{Z},\ \mathbb{R}$ — and infinite sets come in different sizes!
+
+</div>
+<div>
+
+**Power set** $\mathcal{P}(A)$: all subsets of $A$ (including ∅).
+
+$A=\lbrace 2010, 2011\rbrace$
+
+$\mathcal{P}(A)=\lbrace \emptyset, \lbrace 2010\rbrace, \lbrace 2011\rbrace, \lbrace 2010,2011\rbrace \rbrace$
+
+<div class="fragment rise callout">$|\mathcal{P}(A)| = 2^{|A|}$</div>
+
+</div>
+</div>
+
+Note:
+Quick fire: ask the room to answer each bullet aloud before revealing. The power-set cardinality feeds directly into the next checkpoint.
+
+---
+
+<!-- .slide: class="checkpoint" data-background-color="#f3effc" -->
+
+<span class="tag violet">Checkpoint 1</span>
+
+<div class="quiz numeric" data-answer="32" data-tol="0">
+<p class="q">A robot has 5 binary bump sensors. The set of sensors is $S$. How many elements does $\mathcal{P}(S)$ have — i.e. how many possible “which sensors are pressed” situations?</p>
+<div class="explain">$|\mathcal{P}(S)| = 2^5 = 32$. Each subset is one possible combination of pressed sensors.</div>
+</div>
+
+Note:
+Numeric question — type the answer and press Check. Connects set theory with a robotics situation.
+
+---
+
+## Union and intersection
+
+<div class="cols">
+<div>
+
+**Union** $A\cup B = \lbrace x \mid x\in A \lor x\in B\rbrace$
+
+**Intersection** $A\cap B = \lbrace x \mid x\in A \land x\in B\rbrace$
+
+**Complement** $\overline{A} = \lbrace x \mid x\notin A\rbrace$
+
+<p class="fragment rise small">Note: $A\cap B \subseteq A \subseteq A\cup B$.</p>
+
+</div>
+<div>
+<svg viewBox="0 0 420 260" width="100%">
+<rect x="4" y="4" width="412" height="252" rx="16" fill="none" stroke="#e6e3dc" stroke-width="2"/>
+<text x="20" y="30" font-family="Inter" font-size="16" fill="#8a93a3">U</text>
+<circle cx="160" cy="130" r="88" fill="#0f8b8d" fill-opacity=".18" stroke="#0f8b8d" stroke-width="3"/>
+<circle cx="260" cy="130" r="88" fill="#e07a1f" fill-opacity=".18" stroke="#e07a1f" stroke-width="3"/>
+<text x="110" y="135" font-family="Inter" font-weight="700" font-size="26" fill="#0f8b8d">A</text>
+<text x="295" y="135" font-family="Inter" font-weight="700" font-size="26" fill="#e07a1f">B</text>
+<text x="190" y="135" font-family="Inter" font-weight="600" font-size="18" fill="#7b5cd6">A∩B</text>
+</svg>
+</div>
+</div>
+
+---
+
+## Crisp sets in Python
+
+```python [1-3|5-7|9-11]
+A = {1, 2, 3, 4, 5}
+B = {4, 5, 6, 7}
+U = set(range(0, 10))
+
+print(A | B)       # union        {1, 2, 3, 4, 5, 6, 7}
+print(A & B)       # intersection {4, 5}
+print(U - A)       # complement   {0, 6, 7, 8, 9}
+
+# membership is a boolean: 0 or 1
+mu_A = [1 if x in A else 0 for x in sorted(U)]
+print(mu_A)        # [0, 1, 1, 1, 1, 1, 0, 0, 0, 0]
+```
+
+<p class="fragment rise callout teal">That last line is the bridge: a crisp set <b>is</b> a membership function that only returns 0 or 1.</p>
+
+Note:
+Use the line highlights (arrow key) to walk through. Emphasize the last part: characteristic function.
+
+---
+
+## To investigate (homework)
+
+For crisp sets, look up and write one example of each law:
+
+<div class="cols c3">
+<div class="card"><p>Commutativity · Associativity · Distributivity</p></div>
+<div class="card"><p>Idempotence · Identity · Absorption · Involution · Transitivity</p></div>
+<div class="card" style="border-color:var(--accent-2)"><p><b>Excluded middle</b> $A\cup\overline{A}=U$ · <b>Contradiction</b> $A\cap\overline{A}=\emptyset$ · De Morgan</p></div>
+</div>
+
+<div class="fragment rise callout">Spoiler for next session: two of these laws <b>fail</b> for fuzzy sets. Which ones do you think?</div>
+
+Note:
+Plant the seed — the excluded-middle and contradiction laws fail in fuzzy logic. They'll verify this with the set-ops widget in deck 03.
+
+---
+
+<!-- .slide: class="divider" -->
+
+<div class="num">02</div>
+
+# Why crisp is not enough
+
+Note:
+Section divider. This is the conceptual turning point of the session: why a hard threshold is a bad model of human concepts.
+
+---
+
+## Is 29.9 °C “hot”?
+
+<div data-widget="crisp-fuzzy"></div>
+
+Note:
+Drag the slider slowly around 30 °C. Ask: "is it reasonable that 29.9 °C is NOT hot at all but 30.0 °C is completely hot?" Then press Sweep. The crisp step is the problem; the fuzzy curve gives a graded answer.
+This is the single most important conceptual move of the module — take your time.
+
+---
+
+## Imprecise concepts and relations
+
+<div class="cols">
+<div class="card"><h4>Imprecise concepts</h4><p>Age (<i>young</i>), weight (<i>heavy</i>), height (<i>tall</i>), distance (<i>close</i>), speed (<i>fast</i>)</p></div>
+<div class="card"><h4>Imprecise dependencies (rules)</h4><p>“The temperature is <b>high</b> and electricity is <b>cheap</b>, so start the air-conditioning.”</p></div>
+</div>
+
+<br>
+
+Fuzzy set theory:
+
+- provides a means of **representing uncertainty**,
+- uses **linguistic variables** rather than only quantitative ones to represent imprecise concepts.
+
+Note:
+Connect to robotics: 'close to the wall', 'turning fast', 'battery low' — ask students for their own examples from previous projects.
+
+---
+
+<!-- .slide: class="checkpoint" data-background-color="#f3effc" -->
+
+<span class="tag violet">Checkpoint 2</span>
+
+<div class="quiz" data-answer="d">
+<p class="q">A crisp set “Tall” is defined as height ≥ 1.80 m. Which is the main <b>practical</b> problem for a controller using it?</p>
+<div class="opts">
+<button class="opt" data-k="a">It can't be implemented in software</button>
+<button class="opt" data-k="b">It requires a probability distribution</button>
+<button class="opt" data-k="c">It has too many elements</button>
+<button class="opt" data-k="d">Tiny changes near the threshold flip the output abruptly (1.799 m vs 1.800 m)</button>
+</div>
+<div class="explain">Crisp thresholds produce <b>discontinuous</b> decisions — in a controller this means chattering and jerky actions. Fuzzy membership changes smoothly.</div>
+</div>
+
+Note:
+Answer D. Link to control: a crisp threshold in a controller causes chattering (on/off switching) around the threshold.
+
+---
+
+<!-- .slide: class="divider" -->
+
+<div class="num">03</div>
+
+# Fuzzy sets & membership functions
+
+Note:
+Section divider. Next 25 min: definition, the five MF shapes and scikit-fuzzy.
+
+---
+
+## Membership functions
+
+Instead of crisp values 0 or 1, each element is mapped to a value in $[0,1]$ — its **degree of membership**.
+
+<div class="m">$$ A = \{ (x,\ \mu_A(x)) \mid x \in U \}, \qquad \mu_A : U \rightarrow [0,1] $$</div>
+
+<div class="cols">
+<div class="card fragment rise"><h4>U</h4><p>Universe of discourse — all values the variable can take.</p></div>
+<div class="card fragment rise"><h4>μ<sub>A</sub>(x)</h4><p>Membership function — “how much” x belongs to A.</p></div>
+</div>
+
+<div class="fragment rise callout" style="margin-top:20px">⚠️ Membership is <b>not</b> probability. μ = 0.7 “hot” means 30 °C is hot <i>to degree</i> 0.7 — not that it is hot with 70 % chance.</div>
+
+Note:
+The membership vs probability confusion is very common. Use the example: a glass "70% full" vs "70% chance of being full".
+
+---
+
+## Explore the five classic shapes
+
+<div data-widget="mf-explorer"></div>
+
+Note:
+Switch between types and move the parameters. Ask students to predict the effect of each slider BEFORE moving it. Note the readout shows the equivalent scikit-fuzzy call — they'll use it in the exercise.
+
+---
+
+## scikit-fuzzy
+
+```bash
+pip install scikit-fuzzy
+```
+
+```python [1-3|5-9|11-15]
+import numpy as np
+import skfuzzy as fuzz
+import matplotlib.pyplot as plt
+
+x = np.arange(0, 11, 0.1)              # universe of discourse
+tri   = fuzz.trimf(x, [2, 5, 8])
+trap  = fuzz.trapmf(x, [1, 3.5, 6.5, 9])
+gauss = fuzz.gaussmf(x, 5, 1.5)        # mean, sigma
+bell  = fuzz.gbellmf(x, 2, 3, 5)       # width, slope, center
+
+for mu, name in [(tri, 'tri'), (trap, 'trap'), (gauss, 'gauss'), (bell, 'gbell')]:
+    plt.plot(x, mu, label=name)
+plt.legend(); plt.ylabel('membership'); plt.xlabel('x')
+plt.show()
+```
+
+Note:
+Walk through with the line highlights. If installation failed for some students, pair them with a neighbour; the exercise is at the end of this deck.
+
+---
+
+<!-- .slide: class="checkpoint" data-background-color="#f3effc" -->
+
+<span class="tag violet">Checkpoint 3</span>
+
+<div class="quiz" data-answer="a">
+<p class="q">Which call produces a membership function equal to 1 on the whole interval [3, 6] and 0 outside [1, 9]?</p>
+<div class="opts">
+<button class="opt" data-k="a"><code>fuzz.trapmf(x, [1, 3, 6, 9])</code></button>
+<button class="opt" data-k="b"><code>fuzz.trimf(x, [1, 4.5, 9])</code></button>
+<button class="opt" data-k="c"><code>fuzz.trapmf(x, [3, 1, 9, 6])</code></button>
+<button class="opt" data-k="d"><code>fuzz.gaussmf(x, 4.5, 3)</code></button>
+</div>
+<div class="explain">Trapezoid parameters are <b>ordered</b> a ≤ b ≤ c ≤ d: feet at a and d, shoulders (μ = 1) between b and c. Verify it with the explorer on the previous slide.</div>
+</div>
+
+Note:
+Answer A. Option C is a common mistake: parameters out of order give a meaningless shape (scikit-fuzzy asserts a ≤ b ≤ c ≤ d).
+
+---
+
+## Exercise (≈ 20 min, pairs)
+
+1. Reproduce the plots from the previous slides with `scikit-fuzzy`.
+2. Define and plot:
+   - Trapezoidal `{a: -5, b: -2, c: 6, d: 8}`
+   - Sigmoidal: centre at 5, width (slope) 1
+   - Generalized bell: `{width: 4, slope: 2, center: 0}`
+   - Gaussian: `{mean: 2, sigma: 3}`
+3. **Choose a universe of discourse** for each one that shows the whole shape.
+
+<div class="timer" data-seconds="1200"></div>
+
+<p class="small">Hint: check the scikit-fuzzy API — the argument order of <code>sigmf</code> is <code>(x, center, slope)</code>.</p>
+
+Note:
+Walk around. Common error: universe too narrow, e.g. x in [0, 10] for the trapezoid with a = −5.
+
+---
+
+<!-- .slide: class="checkpoint" data-background-color="#f3effc" -->
+
+<span class="tag violet">Exit ticket</span>
+
+<div class="quiz" data-answer="c">
+<p class="q">Which statement is TRUE?</p>
+<div class="opts one">
+<button class="opt" data-k="a">A fuzzy set is a set whose elements are uncertain numbers</button>
+<button class="opt" data-k="b">μ<sub>A</sub>(x) = 0.6 means x belongs to A with probability 60 %</button>
+<button class="opt" data-k="c">Every crisp set is a special fuzzy set whose membership function only takes values 0 and 1</button>
+<button class="opt" data-k="d">The universe of discourse must always be [0, 1]</button>
+</div>
+<div class="explain">Crisp ⊂ fuzzy. The <b>membership values</b> live in [0,1]; the universe can be anything (°C, cm, minutes…).</div>
+</div>
+
+Note:
+Answer C. Use it as the last check before the break/end of session. If many students choose B, revisit the membership vs probability slide.
+</textarea>
+</section>
+</div></div>
+<script src="https://cdn.jsdelivr.net/npm/reveal.js@5.1.0/dist/reveal.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/reveal.js@5.1.0/plugin/markdown/markdown.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/reveal.js@5.1.0/plugin/highlight/highlight.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/reveal.js@5.1.0/plugin/notes/notes.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/reveal.js@5.1.0/plugin/math/math.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/reveal.js@5.1.0/plugin/zoom/zoom.js"></script>
+<script src="../assets/js/fuzzy.js"></script>
+<script src="../assets/js/deck.js"></script>
+</body>
+</html>
