@@ -94,6 +94,7 @@
     hash: true, slideNumber: 'c/t', controls: true, progress: true, center: false,
     width: 1280, height: 720, margin: 0.06, transition: 'fade', transitionSpeed: 'fast',
     pdfSeparateFragments: false,
+    keyboard: { 77: () => { window.location.href = '../index.html'; } },   // M → session menu
     katex: { version: '0.16.11', local: null },
     plugins: [RevealMarkdown, RevealHighlight, RevealNotes, RevealMath.KaTeX, RevealZoom]
   }).then(() => { updateChip(); activate(Reveal.getCurrentSlide()); });

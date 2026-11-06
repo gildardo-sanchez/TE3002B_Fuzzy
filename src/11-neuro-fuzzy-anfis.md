@@ -169,13 +169,14 @@ Explain why the hybrid split works: with premise parameters fixed the model is l
 
 ---
 
-## Watch ANFIS learn
+## Watch ANFIS learn: calibrating an IR range sensor
 
 <div data-widget="anfis"></div>
 
 Note:
-Press Train. Top: data (grey), ANFIS output (violet), each rule's linear consequent (dashed). Bottom: Gaussian MFs moving and changing width as they learn.
-After training, read a rule: "IF x is (MF centred ≈ 1.6) THEN y ≈ 0.9x − 0.4" — still interpretable!
+Robot example: Sharp-type IR distance sensors output a voltage that is strongly nonlinear in distance (≈ d = k/(V − V₀)). We have calibration samples (V, d) and want a model d(V) for the robot.
+Press Train. Top: samples (grey), ANFIS output (violet), each rule's linear consequent (dashed). Bottom: Gaussian MFs moving and changing width as they learn — they migrate toward LOW voltages, where the sensor is most nonlinear (far distances). That's an interpretable result!
+The readout shows RMSE in cm and where each rule is centred, e.g. "IF V ≈ 0.6 V THEN d ≈ p·V + r".
 Try 2 rules (underfits) vs 6 rules (fits well, risk of overfitting with noisy data). Reset and retrain to show different local minima.
 
 ---

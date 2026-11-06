@@ -220,3 +220,16 @@
 .time-badge { position: absolute; bottom: 0; right: 0; font: 600 14px 'Inter'; color: var(--ink-3); }
 
 @media print { #score-chip { display: none; } }
+
+/* Home pill + end-of-deck navigation */
+.home-pill {
+  position: fixed; bottom: 14px; left: 18px; z-index: 30; font: 600 13px Inter, sans-serif; color: var(--ink-2);
+  background: var(--card); border: 1px solid var(--line); border-radius: 999px; padding: 6px 12px; text-decoration: none; transition: all .2s;
+}
+.home-pill:hover { color: #fff; background: var(--accent); border-color: var(--accent); }
+.reveal section.end-slide { display: flex !important; flex-direction: column; justify-content: center; }
+.end-nav { display: flex; gap: 18px; flex-wrap: wrap; margin: 1.2em 0 .8em; }
+.reveal a.btn.end-btn { font-size: 22px; padding: 16px 28px; color: #fff; }
+.reveal a.btn.ghost.end-btn { color: var(--ink); background: var(--card); }
+.reveal a.btn.ghost.end-btn:hover { color: var(--accent); }
+@media print { .home-pill { display: none; } }

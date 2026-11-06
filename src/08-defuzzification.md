@@ -117,17 +117,17 @@ $\bar z_i$ = centre (peak) of each **symmetric** output MF, $\mu_i$ = its firing
 
 <div class="cols">
 <div class="card">
-<h4>Example: student grade</h4>
-<p>A = {(P, 0.6), (F, 0.4), (G, 0.2), (VG, 0.2), (E, 0)} with peaks P = 60, F = 70, G = 80, VG = 90, E = 100</p>
+<h4>Example: gripper force</h4>
+<p>A gripper's rule base outputs F = {(very soft, 0.6), (soft, 0.4), (medium, 0.2), (firm, 0.2), (very firm, 0)} with peaks 2, 5, 10, 15, 20 N</p>
 </div>
-<div class="quiz numeric fragment rise" data-answer="70" data-tol="0.1">
+<div class="quiz numeric fragment rise" data-answer="5.86" data-tol="0.02">
 <p class="q">Compute z*:</p>
-<div class="explain">(0.6·60 + 0.4·70 + 0.2·80 + 0.2·90 + 0)/(1.4) = 98/1.4 = <b>70</b> → a “Fair” student.</div>
+<div class="explain">(0.6·2 + 0.4·5 + 0.2·10 + 0.2·15 + 0)/(1.4) = 8.2/1.4 = <b>5.86 N</b> → between “soft” and “medium”: grip a fragile object gently.</div>
 </div>
 </div>
 
 Note:
-The original slide had a figure with the peaks; here the peaks are given explicitly (60…100) so the exercise is self-contained. Adjust to your figure if needed.
+Robot version of the original "student grade" example (P, F, G, VG, E with degrees 0.6, 0.4, 0.2, 0.2, 0). Same degrees, now applied to a gripper force with peaks 2, 5, 10, 15, 20 N.
 Center-of-Maximum (CoM) used in the crane example is this same formula.
 
 ---

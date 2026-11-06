@@ -24,7 +24,7 @@ TEMPLATE = """<!doctype html>
 <link rel="stylesheet" href="../assets/css/theme.css">
 </head>
 <body>
-<a href="../index.html" style="position:fixed;bottom:14px;left:18px;z-index:30;font:600 13px Inter,sans-serif;color:#8a93a3;text-decoration:none">← all sessions</a>
+<a href="../index.html" class="home-pill" title="Back to all sessions (M)">⌂ All sessions</a>
 <div class="reveal"><div class="slides">
 <section data-markdown data-separator="^---$" data-separator-notes="^Note:">
 <textarea data-template>
@@ -44,10 +44,41 @@ TEMPLATE = """<!doctype html>
 </html>
 """
 
-for md in sorted((ROOT / "src").glob("*.md")):
+END_SLIDE = """
+
+---
+
+<!-- .slide: class="end-slide" data-background-color="#eef7f7" -->
+
+<span class="tag">End of session</span>
+
+<div class="huge">Thank you!</div>
+
+<p class="sub">You completed: <b>{title}</b></p>
+
+<div class="end-nav">
+<a class="btn end-btn" href="../index.html">⌂ Back to all sessions</a>
+{next_link}
+</div>
+
+<p class="small muted">Tip: press <b>M</b> at any time to return to the session menu.</p>
+
+Note:
+Closing slide. Use the buttons to return to the menu or jump to the next deck (useful when two decks share a session).
+"""
+
+decks = sorted((ROOT / "src").glob("*.md"))
+titles = {}
+for md in decks:
+    m = re.search(r"^# (.+)$", md.read_text(encoding="utf-8"), re.M)
+    titles[md.stem] = m.group(1).strip() if m else md.stem
+
+for k, md in enumerate(decks):
     body = md.read_text(encoding="utf-8").strip()
-    m = re.search(r"^# (.+)$", body, re.M)
-    title = m.group(1).strip() if m else md.stem
+    title = titles[md.stem]
+    nxt = decks[k + 1].stem if k + 1 < len(decks) else None
+    next_link = f'<a class="btn ghost end-btn" href="{nxt}.html">Next: {titles[nxt]} →</a>' if nxt else ""
+    body += END_SLIDE.format(title=title, next_link=next_link)
     assert "</textarea>" not in body
     body = body.replace('<!-- .slide: class="checkpoint" -->', '<!-- .slide: class="checkpoint" data-background-color="#f3effc" -->')
     out = ROOT / "decks" / (md.stem + ".html")

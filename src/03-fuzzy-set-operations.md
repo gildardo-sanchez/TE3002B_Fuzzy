@@ -20,7 +20,7 @@ Session 2 (80 min). ≈ 40 min theory with this deck, ≈ 40 min Python practice
 <span class="tag violet">Warm-up · predict</span>
 
 <div class="quiz" data-answer="b">
-<p class="q">It is 28 °C. μ<sub>Hot</sub> = 0.6 and μ<sub>Humid</sub> = 0.3. To what degree is it “hot <b>AND</b> humid”?</p>
+<p class="q">A mobile robot: μ<sub>Fast</sub>(speed) = 0.6 and μ<sub>Close</sub>(obstacle) = 0.3. To what degree is it “moving fast <b>AND</b> close to an obstacle”?</p>
 <div class="opts">
 <button class="opt" data-k="a">0.9</button>
 <button class="opt" data-k="b">0.3</button>
@@ -183,7 +183,7 @@ Answer 0.5. This is the moment to show that the law of contradiction fails — p
 - Excluded middle: $A\cup\overline{A} \neq X$
 - Contradiction: $A\cap\overline{A} \neq \emptyset$
 
-<p class="small fragment rise">Not a bug — a feature: a 25 °C day really is somewhat hot <i>and</i> somewhat not-hot.</p>
+<p class="small fragment rise">Not a bug — a feature: an obstacle at 1 m really is somewhat “close” <i>and</i> somewhat “not close”.</p>
 
 </div>
 </div>

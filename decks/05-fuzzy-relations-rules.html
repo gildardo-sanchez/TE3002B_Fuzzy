@@ -11,7 +11,7 @@
 <link rel="stylesheet" href="../assets/css/theme.css">
 </head>
 <body>
-<a href="../index.html" style="position:fixed;bottom:14px;left:18px;z-index:30;font:600 13px Inter,sans-serif;color:#8a93a3;text-decoration:none">← all sessions</a>
+<a href="../index.html" class="home-pill" title="Back to all sessions (M)">⌂ All sessions</a>
 <div class="reveal"><div class="slides">
 <section data-markdown data-separator="^---$" data-separator-notes="^Note:">
 <textarea data-template>
@@ -196,14 +196,14 @@ Section divider. ≈ 20 min block on rules.
 <div class="cols">
 <div>
 
-Should you take an umbrella?
+Should the delivery robot slow down?
 
-- 70 % chance of rain.
-- An umbrella keeps you dry.
-- If it rains, you get wet.
-- If you get wet, you'll be uncomfortable at work.
+- The corridor ahead is crowded.
+- People may step in front of the robot.
+- If someone steps in front, the robot must stop in time.
+- Stopping distance grows with speed.
 
-<p class="fragment rise">→ You <b>reason</b> to take the umbrella.</p>
+<p class="fragment rise">→ An expert operator <b>reasons</b>: “crowded + fast ⇒ slow down”.</p>
 
 </div>
 <div class="fragment rise">
@@ -220,7 +220,7 @@ A fuzzy rule:
 </div>
 
 Note:
-Umbrella example from the original deck: highlight that humans chain rules naturally — that's what an inference engine automates.
+Robot version of the original umbrella example: highlight that humans chain rules naturally (crowded → risk → slow down) — that's what an inference engine automates.
 
 ---
 
@@ -229,18 +229,18 @@ Umbrella example from the original deck: highlight that humans chain rules natur
 <div class="cols">
 <div>
 
-- IF pressure is **high**, THEN volume is **small**.
-- IF the road is **slippery**, THEN driving is **dangerous**.
-- IF service is **good**, THEN tip is **average**.
-- IF speed is **high**, THEN apply the brake **a little**.
+- IF the obstacle is **close**, THEN speed is **low**.
+- IF the floor is **slippery**, THEN acceleration is **gentle**.
+- IF the heading error is **large**, THEN turn rate is **high**.
+- IF the gripper force is **high**, THEN close the gripper **a little** more.
 
 </div>
 <div>
 
 **Multi-part** antecedents/consequents:
 
-- IF sky is **gray** AND wind is **strong** AND barometer is **falling**, THEN …
-- IF temperature is **cold**, THEN hot-water valve is **open** AND cold-water valve is **shut**.
+- IF left sonar is **near** AND front sonar is **far** AND goal is **ahead**, THEN …
+- IF the obstacle is **close on the left**, THEN left wheel is **fast** AND right wheel is **slow**.
 
 </div>
 </div>
@@ -309,7 +309,7 @@ Section divider. ≈ 20 min: generalized modus ponens.
 
 Fact: **A** is true<br>Rule: **A → B**<br>———————<br>Conclusion: **B** is true
 
-<p class="small">“The apple is red” and “if red then ripe” ⇒ “the apple is ripe”.</p>
+<p class="small">“The obstacle is close” and “if close then brake” ⇒ “brake”.</p>
 </div>
 <div class="card" style="border-color:var(--accent-3)">
 <h4 style="color:var(--accent-3)">Generalized modus ponens (GMP)</h4>
@@ -393,6 +393,27 @@ This slide summarises the complete Mamdani engine in words. It is the bridge to 
 
 Note:
 Answer B. All rules contribute through max-aggregation.
+
+---
+
+<!-- .slide: class="end-slide" data-background-color="#eef7f7" -->
+
+<span class="tag">End of session</span>
+
+<div class="huge">Thank you!</div>
+
+<p class="sub">You completed: <b>Fuzzy Relations, Rules & Reasoning</b></p>
+
+<div class="end-nav">
+<a class="btn end-btn" href="../index.html">⌂ Back to all sessions</a>
+<a class="btn ghost end-btn" href="06-practicing-fuzzy-relations.html">Next: Practicing Fuzzy Relations →</a>
+</div>
+
+<p class="small muted">Tip: press <b>M</b> at any time to return to the session menu.</p>
+
+Note:
+Closing slide. Use the buttons to return to the menu or jump to the next deck (useful when two decks share a session).
+
 </textarea>
 </section>
 </div></div>

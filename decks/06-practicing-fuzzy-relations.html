@@ -11,7 +11,7 @@
 <link rel="stylesheet" href="../assets/css/theme.css">
 </head>
 <body>
-<a href="../index.html" style="position:fixed;bottom:14px;left:18px;z-index:30;font:600 13px Inter,sans-serif;color:#8a93a3;text-decoration:none">← all sessions</a>
+<a href="../index.html" class="home-pill" title="Back to all sessions (M)">⌂ All sessions</a>
 <div class="reveal"><div class="slides">
 <section data-markdown data-separator="^---$" data-separator-notes="^Note:">
 <textarea data-template>
@@ -23,7 +23,7 @@
 
 <p class="sub">Cartesian products, compositions, linguistic variables and fuzzy modus ponens — hands on</p>
 
-<div class="agenda"><span>1 · Cartesian product</span><span>2 · Max-min composition</span><span>3 · Set ∘ relation</span><span>4 · Linguistic variables</span><span>5 · “Pedro studies very little…”</span></div>
+<div class="agenda"><span>1 · Cartesian product</span><span>2 · Max-min composition</span><span>3 · Set ∘ relation</span><span>4 · Linguistic variables</span><span>5 · “The sonar reads about 2.5 m…”</span></div>
 
 <p class="meta">Dr. Gildardo Sánchez Ante · Tecnológico de Monterrey</p>
 
@@ -59,27 +59,27 @@ Retrieval question (1 min) to activate last session's GMP.
 # Cartesian product of fuzzy sets
 
 Note:
-Section divider. ≈ 25 min: Cartesian product with the bookstore example.
+Section divider. ≈ 25 min: Cartesian product with a collision-risk example (robot version of the original bookstore exercise).
 
 ---
 
-## Problem: a bookstore
+## Problem: collision risk of a mobile robot
 
-Relation between **book sales** and the **diversity of books on the shelf**:
+Relation between the robot's **speed** and the **distance to the nearest obstacle**:
 
 | Set | Function | Parameters |
 |---|---|---|
-| A = moderate sales | Generalized bell | a = 20, b = 3, x₀ = 50 |
-| B = diversity offered | Sigmoid | a = 0.01, y₀ = 500 |
-| Universe x = [1, 100] | books sold per month | |
-| Universe y = [1, 1000] | books on shelf | |
+| A = speed is fast | Sigmoid | a = 12, x₀ = 0.5 |
+| B = obstacle is close | Sigmoid | a = −5, y₀ = 1.0 |
+| Universe x = [0, 1] | robot speed (m/s) | |
+| Universe y = [0, 3] | sonar distance (m) | |
 
 <div class="m">$$ \mu_{A\times B}(x,y) = \min\big(\mu_A(x),\ \mu_B(y)\big) $$</div>
 
 <p class="small">Remember: since it is a <b>relation</b>, the result lives on a 2-D domain → a surface (or a heat-map).</p>
 
 Note:
-Read the table aloud. Ask: 'what does a point (x, y) with high μ mean for the bookstore?' before showing the widget.
+Read the table aloud. Ask: 'what does a point (x, y) with high μ mean for the robot?' before showing the widget. Original exercise (bookstore: moderate sales × shelf diversity, gbell(20, 3, 50) × sigmoid(0.01, 500)) works as homework with the same code.
 
 ---
 
@@ -88,8 +88,8 @@ Read the table aloud. Ask: 'what does a point (x, y) with high μ mean for the b
 <div data-widget="cartesian"></div>
 
 Note:
-Hover over different regions. Interpretation: the relation is high only where sales are moderate (~35–65 / month) AND diversity is high (> ~600 books). Toggle min vs product: product gives a smoother, lower surface.
-Ask: "How do we interpret the result?" — a store with moderate sales AND large diversity is strongly in the relation "moderately-selling diverse store".
+Hover over different regions. Interpretation: the relation "collision risk" is high only where the robot is fast (> ~0.6 m/s) AND the obstacle is close (< ~0.8 m). Toggle min vs product: product gives a smoother, lower surface.
+Ask: "How would a safety supervisor use this map?" — e.g. limit speed whenever the risk exceeds 0.5 (an α-cut of a relation!).
 
 ---
 
@@ -98,21 +98,21 @@ Ask: "How do we interpret the result?" — a store with moderate sales AND large
 ```python [1-7|9-11|13-18]
 import numpy as np, skfuzzy as fuzz, matplotlib.pyplot as plt
 
-xA = np.arange(1, 101)                      # sales
-xB = np.arange(1, 1001)                     # books on shelf
-mA = fuzz.gbellmf(xA, 20, 3, 50)
-mB = fuzz.sigmf(xB, 500, 0.01)              # skfuzzy: (x, center, slope)
+xA = np.linspace(0, 1, 101)                 # speed (m/s)
+xB = np.linspace(0, 3, 301)                 # obstacle distance (m)
+mA = fuzz.sigmf(xA, 0.5, 12)                # "fast"   skfuzzy: (x, center, slope)
+mB = fuzz.sigmf(xB, 1.0, -5)                # "close"  (negative slope)
 def cartesian(a, b): return np.fmin.outer(a, b)
 
 R_AB = cartesian(mA, mB)
 A, B = np.meshgrid(xA, xB, indexing='ij')
-print(R_AB.shape)                           # (100, 1000)
+print(R_AB.shape)                           # (101, 301)
 
 fig = plt.figure()
 ax = fig.add_subplot(projection='3d')
 ax.plot_surface(A, B, R_AB, cmap=plt.cm.hot)
 ax.set_zlim(0, 1)
-ax.set_xlabel('sales'); ax.set_ylabel('shelf'); ax.set_zlabel('mu')
+ax.set_xlabel('speed'); ax.set_ylabel('distance'); ax.set_zlabel('risk')
 plt.show()
 ```
 
@@ -258,15 +258,15 @@ Section divider. ≈ 15 min: linguistic variables.
 
 </div>
 <div class="card">
-<h4>Example: playing soccer ⚽</h4>
-<p>x: ball possession · X: [0, 90] minutes</p>
-<p>T = {almost_nothing, little, balanced, big, almost_all}</p>
-<p>M(almost_nothing) = sigmoid(−0.3, 20)<br>M(little) = gauss(9, 25) · M(balanced) = gauss(9, 45) · M(big) = gauss(9, 65)<br>M(almost_all) = sigmoid(0.3, 70)</p>
+<h4>Example: heading error of a mobile robot 🧭</h4>
+<p>x: heading error to the goal · X: [−90°, 90°]</p>
+<p>T = {hard_left, left, straight, right, hard_right}</p>
+<p>M(hard_left) = sigmoid(−0.15, −45)<br>M(left) = gauss(σ 15, −30) · M(straight) = gauss(σ 15, 0) · M(right) = gauss(σ 15, 30)<br>M(hard_right) = sigmoid(0.15, 45)</p>
 </div>
 </div>
 
 Note:
-Explain G with an example: the grammar that generates 'very little', 'more or less big'… M gives each term an MF.
+Explain G with an example: the grammar that generates 'very left', 'more or less straight'… M gives each term an MF. (Original example: ball possession in soccer, same structure.)
 
 ---
 
@@ -274,17 +274,17 @@ Explain G with an example: the grammar that generates 'very little', 'more or le
 
 <span class="tag violet">Checkpoint 2 · 5 min in pairs</span>
 
-## Plot the soccer variable
+## Plot the heading-error variable
 
-Write the code, then answer: **how much is 50 minutes of possession “balanced” and “big”?**
+Write the code, then answer: **with a heading error of 10°, how much is it “straight” and “right”?**
 
 <div class="timer" data-seconds="300"></div>
 
 <details><summary>Answer</summary>
-gauss(σ = 9, c = 45) at 50 → e^(−25/162) ≈ <b>0.86</b> balanced · gauss(9, 65) at 50 → e^(−225/162) ≈ <b>0.25</b> big.</details>
+gauss(σ = 15, c = 0) at 10° → e^(−100/450) ≈ <b>0.80</b> straight · gauss(15, 30) at 10° → e^(−400/450) ≈ <b>0.41</b> right.</details>
 
 Note:
-5 minutes in pairs. Answers in the dropdown: 0.86 and 0.25.
+5 minutes in pairs. Answers in the dropdown: 0.80 and 0.41. Ask: would a controller steer right a little? (Yes: 'straight' dominates, 'right' contributes.)
 
 ---
 
@@ -295,35 +295,35 @@ Note:
 # Fuzzy reasoning with IF–THEN rules
 
 Note:
-Section divider. ≈ 25 min: the 'study a lot' rule.
+Section divider. ≈ 25 min: the 'obstacle close → brake' rule.
 
 ---
 
-## “If I study a lot, then I will be an excellent student”
+## “If the obstacle is close, then brake hard”
 
 | Linguistic value | MF | Universe |
 |---|---|---|
-| study a lot | sigmoid(a = 3, c = 2) | x ∈ [0, 8] daily hours |
-| excellent student | sigmoid(a = 3, c = 8) | y ∈ [0, 10] grade average |
+| obstacle is close | sigmoid(a = −5, c = 1.0) | x ∈ [0, 3] m (sonar distance) |
+| brake hard | sigmoid(a = 10, c = 0.6) | y ∈ [0, 1] normalised brake command |
 
 1. Compute the rule as a relation $R = A\times B$ and plot it.
-2. **How do we interpret it?** The rule is strongly “active” only for (many hours, high grades).
+2. **How do we interpret it?** The rule is strongly “active” only for (short distance, strong braking).
 
 <div class="callout teal fragment rise">Fuzzy modus ponens: &nbsp; Fact x is A′ &nbsp;·&nbsp; Rule R = A × B &nbsp;⇒&nbsp; <b>B′ = A′ ∘ R</b></div>
 
 Note:
-Students compute R = A × B in Python (same code as the bookstore). The interpretation question is the important part.
+Students compute R = A × B in Python (same code as the collision-risk example). Original version of this exercise: 'If I study a lot, I will be an excellent student' — sigmoid(3, 2) on [0, 8] h × sigmoid(3, 8) on [0, 10].
 
 ---
 
-## “Pedro studies just very little” — what can we conclude?
+## “The sonar reads about 2.5 m” — how hard should we brake?
 
-<div data-widget="gmp" data-x="0,8" data-y="0,10" data-a="sig,3,2" data-b="sig,3,8" data-ap="gauss,0.5,0.4" data-labels="daily study hours|grade average"></div>
+<div data-widget="gmp" data-x="0,3" data-y="0,1" data-a="sig,-5,1" data-b="sig,10,0.6" data-ap="gauss,2.5,0.15" data-labels="obstacle distance (m)|brake command"></div>
 
 Note:
-Model "studies very little" as a Gaussian around 0.5 h. The match with "study a lot" is low → the conclusion is "excellent student" clipped at a low level: we can conclude very little about Pedro being excellent.
-Move A' to 4–6 hours (a diligent student) — the conclusion becomes strong.
-Discussion: the rule says nothing about what happens if you DON'T study a lot — B' never says "bad student". That is a property of Mamdani implication.
+The fact A′ is a noisy sonar reading: a Gaussian around 2.5 m whose width models the sensor noise. The match with "close" is tiny → "brake hard" is clipped at a very low level.
+Move A′ to 0.5 m — the conclusion becomes strong. Widen A′ (a noisier sensor): the match grows earlier — a conservative robot brakes sooner with a bad sensor. Great robotics discussion.
+The rule says nothing about what to do when the obstacle is FAR — B′ never says "accelerate". That's a property of Mamdani implication: you need more rules.
 
 ---
 
@@ -332,18 +332,39 @@ Discussion: the rule says nothing about what happens if you DON'T study a lot �
 <span class="tag violet">Exit ticket</span>
 
 <div class="quiz" data-answer="a">
-<p class="q">Pedro studies very little. Using only the rule “IF study a lot THEN excellent”, our fuzzy conclusion B′ is…</p>
+<p class="q">The obstacle is far (≈ 2.5 m). Using only the rule “IF obstacle is close THEN brake hard”, our fuzzy conclusion B′ is…</p>
 <div class="opts one">
-<button class="opt" data-k="a">“Excellent” clipped at a small height — the rule barely applies, so we learn little</button>
-<button class="opt" data-k="b">“Not excellent” — Pedro will fail</button>
-<button class="opt" data-k="c">“Excellent” with full membership</button>
+<button class="opt" data-k="a">“Brake hard” clipped at a small height — the rule barely applies, so we learn little</button>
+<button class="opt" data-k="b">“Accelerate” — the path is clear</button>
+<button class="opt" data-k="c">“Brake hard” with full membership</button>
 <button class="opt" data-k="d">Undefined — GMP needs A′ = A exactly</button>
 </div>
-<div class="explain">GMP only <b>propagates</b> the rule to the degree the fact matches the antecedent. To conclude “bad student” you need another rule!</div>
+<div class="explain">GMP only <b>propagates</b> the rule to the degree the fact matches the antecedent. To conclude “accelerate” you need another rule (IF far THEN speed up)!</div>
 </div>
 
 Note:
 Answer A. Stress: a single rule can't conclude the opposite. You need a complete rule base.
+
+---
+
+<!-- .slide: class="end-slide" data-background-color="#eef7f7" -->
+
+<span class="tag">End of session</span>
+
+<div class="huge">Thank you!</div>
+
+<p class="sub">You completed: <b>Practicing Fuzzy Relations</b></p>
+
+<div class="end-nav">
+<a class="btn end-btn" href="../index.html">⌂ Back to all sessions</a>
+<a class="btn ghost end-btn" href="07-fuzzy-inference-examples.html">Next: Fuzzy Inference Systems in Action →</a>
+</div>
+
+<p class="small muted">Tip: press <b>M</b> at any time to return to the session menu.</p>
+
+Note:
+Closing slide. Use the buttons to return to the menu or jump to the next deck (useful when two decks share a session).
+
 </textarea>
 </section>
 </div></div>

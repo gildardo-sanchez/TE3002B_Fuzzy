@@ -179,14 +179,14 @@ Section divider. ≈ 20 min block on rules.
 <div class="cols">
 <div>
 
-Should you take an umbrella?
+Should the delivery robot slow down?
 
-- 70 % chance of rain.
-- An umbrella keeps you dry.
-- If it rains, you get wet.
-- If you get wet, you'll be uncomfortable at work.
+- The corridor ahead is crowded.
+- People may step in front of the robot.
+- If someone steps in front, the robot must stop in time.
+- Stopping distance grows with speed.
 
-<p class="fragment rise">→ You <b>reason</b> to take the umbrella.</p>
+<p class="fragment rise">→ An expert operator <b>reasons</b>: “crowded + fast ⇒ slow down”.</p>
 
 </div>
 <div class="fragment rise">
@@ -203,7 +203,7 @@ A fuzzy rule:
 </div>
 
 Note:
-Umbrella example from the original deck: highlight that humans chain rules naturally — that's what an inference engine automates.
+Robot version of the original umbrella example: highlight that humans chain rules naturally (crowded → risk → slow down) — that's what an inference engine automates.
 
 ---
 
@@ -212,18 +212,18 @@ Umbrella example from the original deck: highlight that humans chain rules natur
 <div class="cols">
 <div>
 
-- IF pressure is **high**, THEN volume is **small**.
-- IF the road is **slippery**, THEN driving is **dangerous**.
-- IF service is **good**, THEN tip is **average**.
-- IF speed is **high**, THEN apply the brake **a little**.
+- IF the obstacle is **close**, THEN speed is **low**.
+- IF the floor is **slippery**, THEN acceleration is **gentle**.
+- IF the heading error is **large**, THEN turn rate is **high**.
+- IF the gripper force is **high**, THEN close the gripper **a little** more.
 
 </div>
 <div>
 
 **Multi-part** antecedents/consequents:
 
-- IF sky is **gray** AND wind is **strong** AND barometer is **falling**, THEN …
-- IF temperature is **cold**, THEN hot-water valve is **open** AND cold-water valve is **shut**.
+- IF left sonar is **near** AND front sonar is **far** AND goal is **ahead**, THEN …
+- IF the obstacle is **close on the left**, THEN left wheel is **fast** AND right wheel is **slow**.
 
 </div>
 </div>
@@ -292,7 +292,7 @@ Section divider. ≈ 20 min: generalized modus ponens.
 
 Fact: **A** is true<br>Rule: **A → B**<br>———————<br>Conclusion: **B** is true
 
-<p class="small">“The apple is red” and “if red then ripe” ⇒ “the apple is ripe”.</p>
+<p class="small">“The obstacle is close” and “if close then brake” ⇒ “brake”.</p>
 </div>
 <div class="card" style="border-color:var(--accent-3)">
 <h4 style="color:var(--accent-3)">Generalized modus ponens (GMP)</h4>

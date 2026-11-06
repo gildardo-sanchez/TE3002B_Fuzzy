@@ -188,12 +188,12 @@ Section divider. This is the conceptual turning point of the session: why a hard
 
 ---
 
-## Is 29.9 °C “hot”?
+## Is an obstacle at 1.01 m “close”?
 
 <div data-widget="crisp-fuzzy"></div>
 
 Note:
-Drag the slider slowly around 30 °C. Ask: "is it reasonable that 29.9 °C is NOT hot at all but 30.0 °C is completely hot?" Then press Sweep. The crisp step is the problem; the fuzzy curve gives a graded answer.
+Robot example: a mobile robot brakes when an obstacle is "close" (sonar reading). Drag the slider slowly around 1.0 m. Ask: "is it reasonable that at 1.01 m the robot does not brake at all, but at 1.00 m it brakes at full force?" Then press "Robot approaches". The crisp step produces a jerky, all-or-nothing braking; the fuzzy curve gives a graded, smooth braking command.
 This is the single most important conceptual move of the module — take your time.
 
 ---
@@ -201,8 +201,8 @@ This is the single most important conceptual move of the module — take your ti
 ## Imprecise concepts and relations
 
 <div class="cols">
-<div class="card"><h4>Imprecise concepts</h4><p>Age (<i>young</i>), weight (<i>heavy</i>), height (<i>tall</i>), distance (<i>close</i>), speed (<i>fast</i>)</p></div>
-<div class="card"><h4>Imprecise dependencies (rules)</h4><p>“The temperature is <b>high</b> and electricity is <b>cheap</b>, so start the air-conditioning.”</p></div>
+<div class="card"><h4>Imprecise concepts</h4><p>Obstacle <i>close</i>, wheel speed <i>fast</i>, battery <i>low</i>, payload <i>heavy</i>, heading error <i>small</i>, terrain <i>rough</i></p></div>
+<div class="card"><h4>Imprecise dependencies (rules)</h4><p>“If the obstacle is <b>close</b> and the robot is moving <b>fast</b>, brake <b>hard</b>.”</p></div>
 </div>
 
 <br>
@@ -222,12 +222,12 @@ Connect to robotics: 'close to the wall', 'turning fast', 'battery low' — ask 
 <span class="tag violet">Checkpoint 2</span>
 
 <div class="quiz" data-answer="d">
-<p class="q">A crisp set “Tall” is defined as height ≥ 1.80 m. Which is the main <b>practical</b> problem for a controller using it?</p>
+<p class="q">A line-follower defines the crisp set “Off-track” as lateral error ≥ 2.0 cm. Which is the main <b>practical</b> problem for a controller using it?</p>
 <div class="opts">
 <button class="opt" data-k="a">It can't be implemented in software</button>
 <button class="opt" data-k="b">It requires a probability distribution</button>
 <button class="opt" data-k="c">It has too many elements</button>
-<button class="opt" data-k="d">Tiny changes near the threshold flip the output abruptly (1.799 m vs 1.800 m)</button>
+<button class="opt" data-k="d">Tiny changes near the threshold flip the output abruptly (1.99 cm vs 2.00 cm)</button>
 </div>
 <div class="explain">Crisp thresholds produce <b>discontinuous</b> decisions — in a controller this means chattering and jerky actions. Fuzzy membership changes smoothly.</div>
 </div>

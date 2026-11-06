@@ -11,7 +11,7 @@
 <link rel="stylesheet" href="../assets/css/theme.css">
 </head>
 <body>
-<a href="../index.html" style="position:fixed;bottom:14px;left:18px;z-index:30;font:600 13px Inter,sans-serif;color:#8a93a3;text-decoration:none">← all sessions</a>
+<a href="../index.html" class="home-pill" title="Back to all sessions (M)">⌂ All sessions</a>
 <div class="reveal"><div class="slides">
 <section data-markdown data-separator="^---$" data-separator-notes="^Note:">
 <textarea data-template>
@@ -21,9 +21,9 @@
 
 # Fuzzy Inference Systems in Action
 
-<p class="sub">Three worked examples: inverted pendulum, driving speed, container crane</p>
+<p class="sub">Three worked examples: inverted pendulum, mobile-robot speed, container crane</p>
 
-<div class="agenda"><span>1 · Anatomy of a fuzzy controller</span><span>2 · Inverted pendulum</span><span>3 · How fast will I drive?</span><span>4 · Container crane</span></div>
+<div class="agenda"><span>1 · Anatomy of a fuzzy controller</span><span>2 · Inverted pendulum</span><span>3 · How fast should my robot go?</span><span>4 · Container crane</span></div>
 
 <p class="meta">Dr. Gildardo Sánchez Ante · Tecnológico de Monterrey</p>
 
@@ -162,10 +162,10 @@ Answer B. Connect to PD control students already know.
 
 <div class="num">02</div>
 
-# Example 2 · How fast will I drive today?
+# Example 2 · How fast should my robot go?
 
 Note:
-Section divider. ≈ 20 min: driving speed example.
+Section divider. ≈ 20 min: mobile-robot speed controller. Robot version of the original "How fast will I drive today?" (weather) example — same structure: 2 inputs, a few rules, CoM defuzzification.
 
 ---
 
@@ -174,71 +174,75 @@ Section divider. ≈ 20 min: driving speed example.
 <div class="cols">
 <div>
 
-- **Temp** (°F): {Freezing, Cool, Warm, Hot} on 10–110
-- **Cloud cover** (%): {Sunny, Partly cloudy, Overcast} on 0–100
-- **Speed** (mph): {Slow, Fast} on 0–100
+A differential-drive robot moves toward a goal. It must **slow down** near obstacles and when it has to **turn** a lot.
+
+- **Distance** to the front obstacle (m, sonar): {near, medium, far} on 0–3
+- **Heading error** |θ<sub>goal</sub> − θ| (°): {small, large} on 0–90
+- **Speed** command (m/s): {slow, medium, fast} on 0–0.5
 
 </div>
 <div class="card">
-<h4>Rules — a disjunction of conjunctions</h4>
-<p>R1: IF it's <b>Sunny</b> AND <b>Warm</b> → drive <b>Fast</b></p>
-<p>R2: IF it's <b>(partly) Cloudy</b> AND <b>Cool</b> → drive <b>Slow</b></p>
+<h4>Rules</h4>
+<p>R1: IF Distance is <b>far</b> AND Heading is <b>small</b> → <b>fast</b></p>
+<p>R2: IF Distance is <b>medium</b> AND Heading is <b>small</b> → <b>medium</b></p>
+<p>R3: IF Distance is <b>near</b> OR Heading is <b>large</b> → <b>slow</b></p>
 </div>
 </div>
 
-<div class="fragment rise callout" style="margin-top:20px"><b>Question:</b> How fast will I go if it is <b>65 °F</b> with <b>25 %</b> cloud cover?</div>
+<div class="fragment rise callout" style="margin-top:20px"><b>Question:</b> What speed should the robot command if the obstacle is at <b>1.6 m</b> and the heading error is <b>20°</b>?</div>
 
 Note:
-'Disjunction of conjunctions': each rule is an AND of conditions; the rule base is the OR of the rules.
+Ask why R3 uses OR: either reason alone (obstacle near, or a sharp turn ahead) is enough to slow down. The rule base is a disjunction (OR) of rules; each rule is a conjunction or disjunction of conditions.
+MFs: near = trap[0, 0, 0.5, 1.2], medium = tri[0.5, 1.25, 2], far = trap[1.3, 2, 3, 3]; small = trap[0, 0, 10, 35], large = trap[15, 45, 90, 90]; slow/medium/fast peaks at 0.05 / 0.25 / 0.45 m/s.
 
 ---
 
-## By hand (values read from the slide charts)
+## By hand
 
 <div class="cols">
 <div>
 
 **1 · Fuzzify**
 
-- 65 °F → Cool = 0.4, Warm = 0.7
-- 25 % → Sunny = 0.8, Cloudy = 0.2
+- 1.6 m → far = 0.43, medium = 0.53, near = 0
+- 20° → small = 0.6, large = 0.17
 
 <div class="fragment rise">
 
-**2 · Rule strengths (AND → min)**
+**2 · Rule strengths (AND → min, OR → max)**
 
-- R1: min(0.8, 0.7) = **0.7** → Fast
-- R2: min(0.2, 0.4) = **0.2** → Slow
+- R1: min(0.43, 0.6) = **0.43** → fast
+- R2: min(0.53, 0.6) = **0.53** → medium
+- R3: max(0, 0.17) = **0.17** → slow
 
 </div>
 </div>
 <div class="fragment rise">
 
-**3 · Defuzzify (weighted mean of the term peaks 25 and 75)**
+**3 · Defuzzify (CoM: weighted mean of the peaks 0.45, 0.25, 0.05)**
 
-<div class="m">$$ \text{Speed}=\frac{0.2\cdot 25+0.7\cdot 75}{0.2+0.7} = 63.8\ \text{mph} $$</div>
+<div class="m">$$ v=\frac{0.43\cdot 0.45+0.53\cdot 0.25+0.17\cdot 0.05}{0.43+0.53+0.17} $$</div>
 
-<div class="quiz numeric" data-answer="63.9" data-tol="0.15">
-<p class="q">Check it yourself:</p>
-<div class="explain">(5 + 52.5)/0.9 = 63.9 mph (the original slide rounds to 63.8).</div>
+<div class="quiz numeric" data-answer="0.30" data-tol="0.01">
+<p class="q">v = ? (m/s)</p>
+<div class="explain">(0.193 + 0.133 + 0.008)/1.13 ≈ <b>0.30 m/s</b> — a moderate speed: the robot is neither close nor fully clear, and is turning a bit.</div>
 </div>
 
 </div>
 </div>
 
 Note:
-Hand calculation with the values read from the original charts. The numeric check accepts 63.8–64.0.
+far(1.6) = (1.6 − 1.3)/0.7 = 0.43; medium(1.6) = (2 − 1.6)/0.75 = 0.53; small(20) = (35 − 20)/25 = 0.6; large(20) = (20 − 15)/30 = 0.17. The widget on the next slide gives exactly 0.296 m/s with CoM.
 
 ---
 
 ## Now watch the whole engine — step by step
 
-<div data-widget="fis" data-system="speed" data-stage="0" data-defuzz="com"></div>
+<div data-widget="fis" data-system="robot" data-stage="0" data-defuzz="com"></div>
 
 Note:
-Start at stage 0 and press Step: 1 fuzzify (amber lines), 2 rule strength (min), 3 clip, 4 aggregate (max), 5 defuzzify.
-The widget uses idealized triangles/trapezoids (Cool peak 50, Warm peak 70 …), so its numbers (≈ 65.9 mph with CoM) differ slightly from the hand calculation that read values from the original charts — a good discussion point: MF shapes matter!
-Then switch defuzzification to centroid and see how the answer moves. Finally drag the sliders: a freezing overcast day → no rule fires! (Incomplete rule base.)
+Start at stage 0 and press Step: 1 fuzzify (amber lines), 2 rule strength (min for AND, max for OR in R3), 3 clip, 4 aggregate (max), 5 defuzzify.
+Then switch defuzzification to centroid (≈ 0.28 m/s) and discuss why it differs. Finally drag the sliders: move the obstacle closer — the speed falls smoothly instead of switching abruptly.
 
 ---
 
@@ -247,18 +251,18 @@ Then switch defuzzification to centroid and see how the answer moves. Finally dr
 <span class="tag violet">Checkpoint 2 · explore & explain</span>
 
 <div class="quiz" data-answer="c">
-<p class="q">Set Temp = 100 °F and Cloud = 90 %. The output disappears. Why?</p>
+<p class="q">Set Distance = 2.5 m and Heading = 60°. The robot commands a slow speed even though the path is clear. Why?</p>
 <div class="opts">
 <button class="opt" data-k="a">The defuzzifier is broken</button>
-<button class="opt" data-k="b">Hot and Overcast contradict each other</button>
-<button class="opt" data-k="c">No rule covers (Hot, Overcast): both rule strengths are 0 — the rule base is incomplete</button>
-<button class="opt" data-k="d">Speed would be negative</button>
+<button class="opt" data-k="b">R1 fires with full strength</button>
+<button class="opt" data-k="c">Heading is “large” (μ = 1), so R3 fires fully through the OR, while R1 and R2 need a small heading and don't fire</button>
+<button class="opt" data-k="d">Distance 2.5 m is “near”</button>
 </div>
-<div class="explain">A practical controller needs <b>completeness</b>: for every input, at least one rule must fire. Fix it by adding rules (or a default rule).</div>
+<div class="explain">That's the intended behaviour: <b>turn first, then accelerate</b> — exactly what a human driver does at a sharp corner. Rules encode strategy.</div>
 </div>
 
 Note:
-Answer C. Ask: 'which rule would you add?' e.g. IF Overcast AND Hot THEN Slow.
+Answer C. Follow-up: what rule would you add so the robot also turns (an angular-velocity output)? Leads naturally to multi-output controllers (v, ω) for differential drive.
 
 ---
 
@@ -382,6 +386,27 @@ Drag Angle negative while Distance is medium: what happens? Only R2 fires… The
 
 Note:
 Exit ticket. If time is short, assign it as a Canvas quiz.
+
+---
+
+<!-- .slide: class="end-slide" data-background-color="#eef7f7" -->
+
+<span class="tag">End of session</span>
+
+<div class="huge">Thank you!</div>
+
+<p class="sub">You completed: <b>Fuzzy Inference Systems in Action</b></p>
+
+<div class="end-nav">
+<a class="btn end-btn" href="../index.html">⌂ Back to all sessions</a>
+<a class="btn ghost end-btn" href="08-defuzzification.html">Next: Defuzzification →</a>
+</div>
+
+<p class="small muted">Tip: press <b>M</b> at any time to return to the session menu.</p>
+
+Note:
+Closing slide. Use the buttons to return to the menu or jump to the next deck (useful when two decks share a session).
+
 </textarea>
 </section>
 </div></div>

@@ -11,7 +11,7 @@
 <link rel="stylesheet" href="../assets/css/theme.css">
 </head>
 <body>
-<a href="../index.html" style="position:fixed;bottom:14px;left:18px;z-index:30;font:600 13px Inter,sans-serif;color:#8a93a3;text-decoration:none">← all sessions</a>
+<a href="../index.html" class="home-pill" title="Back to all sessions (M)">⌂ All sessions</a>
 <div class="reveal"><div class="slides">
 <section data-markdown data-separator="^---$" data-separator-notes="^Note:">
 <textarea data-template>
@@ -203,22 +203,22 @@ Answer C. Ask a follow-up: how would you model 'near'? (sigmoid with a < 0, or l
 <div class="cols">
 <div>
 
-- **Seasons of the year** — overlapping trapezoids over time
-- **Positive numbers** — sigmoid on [−100, 100]
-- **Around 4** — triangle or Gaussian centred at 4
-- **Tank level: low / high** — complementary ramps on [0, 100] %
-- **Age** — young, very young, old, more or less old…
+- **Battery level** — low / medium / high: overlapping trapezoids on [0, 100] %
+- **Obstacle distance** — close / far: left-shoulder trapezoid + sigmoid on [0, 3] m
+- **Joint angle “around 90°”** — triangle or Gaussian centred at 90°
+- **Heading error** — left / straight / right on [−180°, 180°]
+- **Wheel slip “positive”** — sigmoid (only the sign matters, smoothly)
 
 </div>
 <div class="fragment rise">
 
-<div class="callout violet">Notice “very young” and “more or less old”: they are built <b>from</b> “young” and “old”. These modifiers are called <b>hedges</b>.</div>
+<div class="callout violet">We also say “<b>very</b> close” or “<b>more or less</b> far”: new terms built <b>from</b> “close” and “far”. These modifiers are called <b>hedges</b>.</div>
 
 </div>
 </div>
 
 Note:
-These examples come from the original deck (seasons, positive numbers, around 4, tank level, age). Sketch one or two quickly; the age example leads into hedges.
+Robotics versions of the original examples (seasons, positive numbers, around 4, tank level, age). Sketch one or two quickly; the distance example leads into hedges. If you prefer the originals, they illustrate exactly the same shapes.
 
 ---
 
@@ -229,7 +229,7 @@ These examples come from the original deck (seasons, positive numbers, around 4,
 <p class="small">very A → μ² (concentration) · more or less A → √μ (dilation) · not A → 1 − μ</p>
 
 Note:
-Ask before each click: "will 'very young' be wider or narrower than 'young'?" Concentration narrows, dilation widens. "Not very young" is a nice combo.
+Ask before each click: "will 'very close' be wider or narrower than 'close'?" Concentration narrows, dilation widens. "Not very close" is a nice combo — it's where a robot may still move but carefully.
 
 ---
 
@@ -238,9 +238,9 @@ Ask before each click: "will 'very young' be wider or narrower than 'young'?" Co
 <div class="cols">
 <div>
 
-**Discrete universe** — e.g. Strong Fever (°C):
+**Discrete universe** — e.g. Motor overheating (°C):
 
-$\mu_{SF}(38)=0.1,\ \mu_{SF}(39)=0.35,\ \mu_{SF}(40)=0.65,\ \mu_{SF}(41)=0.9,\ \mu_{SF}(42)=1$
+$\mu_{OH}(60)=0.1,\ \mu_{OH}(70)=0.35,\ \mu_{OH}(80)=0.65,\ \mu_{OH}(90)=0.9,\ \mu_{OH}(100)=1$
 
 <div class="m">$$ A = \sum_{x_i\in U} \mu_A(x_i)/x_i $$</div>
 
@@ -263,26 +263,27 @@ The '+' and '/' notation confuses students every year. Say explicitly: this is N
 
 ## Example: discrete universe
 
-$U = \lbrace 1,\dots,8 \rbrace$ = number of courses a student may take per semester. $A$ = “appropriate number of courses”:
+$U = \lbrace 1,\dots,8 \rbrace$ = number of the robot's 8 sonars that detect an obstacle. $A$ = “the robot is surrounded”:
 
-<div class="m">$$ A = 0.1/1 + 0.3/2 + 0.8/3 + 1.0/4 + 0.9/5 + 0.5/6 + 0.2/7 + 0.1/8 $$</div>
+<div class="m">$$ A = 0/1 + 0.1/2 + 0.3/3 + 0.5/4 + 0.7/5 + 0.9/6 + 1.0/7 + 1.0/8 $$</div>
 
 ```python
 import numpy as np
 U   = np.arange(1, 9)
-muA = np.array([0.1, 0.3, 0.8, 1.0, 0.9, 0.5, 0.2, 0.1])
-print("core:", U[muA == 1])          # [4]
-print("0.5-cut:", U[muA >= 0.5])     # [3 4 5 6]
+muA = np.array([0.0, 0.1, 0.3, 0.5, 0.7, 0.9, 1.0, 1.0])
+print("core:", U[muA == 1])          # [7 8]
+print("0.5-cut:", U[muA >= 0.5])     # [4 5 6 7 8]
+print("support:", U[muA > 0])        # [2 3 4 5 6 7 8]
 ```
 
 Note:
-Run the snippet live if time allows. Core = {4}: the set is normal. The 0.5-cut is a crisp set — the bridge back to classical sets.
+Run the snippet live if time allows. Core = {7, 8}: the set is normal. The 0.5-cut is a crisp set — e.g. "switch to escape mode if at least 4 sonars fire" is exactly a crisp α-cut of a fuzzy concept. (Original example: appropriate number of courses per semester.)
 
 ---
 
 ## Example: continuous universe
 
-$B$ = “about 50 years old”, $U = \mathbb{R}^+$:
+$B$ = “about 50 cm from the wall” (wall-following robot), $U = \mathbb{R}^+$ in cm:
 
 <div class="m">$$ \mu_B(x) = \frac{1}{1+\left(\frac{x-50}{5}\right)^{4}} $$</div>
 
@@ -295,7 +296,7 @@ $B$ = “about 50 years old”, $U = \mathbb{R}^+$:
 <button class="opt" data-k="c">Generalized bell, a = 5, b = 4, c = 50</button>
 <button class="opt" data-k="d">Sigmoid, a = 5, c = 50</button>
 </div>
-<div class="explain">The bell has exponent 2b; here 2b = 4 → b = 2. Width a = 5 → μ = 0.5 at x = 45 and 55.</div>
+<div class="explain">The bell has exponent 2b; here 2b = 4 → b = 2. Width a = 5 → μ = 0.5 at 45 cm and 55 cm from the wall.</div>
 </div>
 </div>
 
@@ -341,11 +342,32 @@ Note:
 
 1. Implement `support(x, mu)`, `core(x, mu)`, `alpha_cut(x, mu, alpha)` with NumPy.
 2. Test them on the five MF types. What happens to the support of a Gaussian? Why?
-3. Plot the **age** example: young, very young (μ²), old, more-or-less old (√μ), not very young.
-4. Encode Strong Fever as a discrete set and compute its 0.5-cut.
+3. Plot the **obstacle distance** example: close, very close (μ²), far, more-or-less far (√μ), not very close.
+4. Encode Motor overheating as a discrete set and compute its 0.5-cut.
 
 Note:
 Point 2: numerically the Gaussian's support is the whole universe; students should use a small tolerance (μ > 1e-3) and explain why.
+
+---
+
+<!-- .slide: class="end-slide" data-background-color="#eef7f7" -->
+
+<span class="tag">End of session</span>
+
+<div class="huge">Thank you!</div>
+
+<p class="sub">You completed: <b>Membership Functions</b></p>
+
+<div class="end-nav">
+<a class="btn end-btn" href="../index.html">⌂ Back to all sessions</a>
+<a class="btn ghost end-btn" href="05-fuzzy-relations-rules.html">Next: Fuzzy Relations, Rules & Reasoning →</a>
+</div>
+
+<p class="small muted">Tip: press <b>M</b> at any time to return to the session menu.</p>
+
+Note:
+Closing slide. Use the buttons to return to the menu or jump to the next deck (useful when two decks share a session).
+
 </textarea>
 </section>
 </div></div>

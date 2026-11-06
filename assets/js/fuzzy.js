@@ -206,20 +206,21 @@
 
   /* --- Crisp vs fuzzy "Hot" ------------------------------------- */
   W['crisp-fuzzy'] = el => {
-    const C = colors(), cv = canvas(el, 1000, 320), P = new Plot(cv, { x: [0, 45] });
+    // Robot example: is the obstacle "close"?  (ultrasonic range 0–3 m, crisp threshold 1.0 m)
+    const C = colors(), cv = canvas(el, 1000, 320), P = new Plot(cv, { x: [0, 3] });
     const ctr = h('div', { class: 'ctrls' }); el.append(ctr);
     const out = h('div', { class: 'readout' }); el.append(out);
-    let T = 24;
-    const crisp = x => x >= 30 ? 1 : 0, fuzzy = x => MF.sig(x, [0.45, 30]);
+    let d = 1.4;
+    const crisp = x => x <= 1.0 ? 1 : 0, fuzzy = x => MF.sig(x, [-7, 1.0]);
     function draw() {
-      P.clear().axes({ xlabel: 'Temperature (°C)', xticks: [0, 10, 20, 30, 40] });
+      P.clear().axes({ xlabel: 'Distance to obstacle measured by the sonar (m)', xticks: [0, 0.5, 1, 1.5, 2, 2.5, 3] });
       P.fn(crisp, { color: C.b, width: 3, n: 900 }).fn(fuzzy, { color: C.a, width: 3, fill: .12 });
-      P.vline(T, { color: C.ink2 }).dot(T, crisp(T), C.b).dot(T, fuzzy(T), C.a);
-      out.innerHTML = `T = ${T.toFixed(1)} °C   crisp μ<sub>Hot</sub> = <b style="color:${C.b}">${crisp(T)}</b>   fuzzy μ<sub>Hot</sub> = <b style="color:${C.a}">${round(fuzzy(T))}</b>`;
+      P.vline(d, { color: C.ink2 }).dot(d, crisp(d), C.b).dot(d, fuzzy(d), C.a);
+      out.innerHTML = `d = ${d.toFixed(2)} m   crisp μ<sub>Close</sub> = <b style="color:${C.b}">${crisp(d)}</b> (brake: ${crisp(d) ? 'FULL' : 'none'})   fuzzy μ<sub>Close</sub> = <b style="color:${C.a}">${round(fuzzy(d))}</b> (brake ≈ ${Math.round(100 * fuzzy(d))} %)`;
     }
-    const r = slider(ctr, 'Temperature', 0, 45, 0.1, T, v => { T = v; draw(); }, v => v.toFixed(1) + '°');
-    button(ctr, '▶ Sweep', () => tween(3000, t => { T = 15 + 30 * t; r.value = T; r.nextSibling.textContent = T.toFixed(1) + '°'; draw(); }));
-    ctr.insertAdjacentHTML('beforeend', `<span class="legend"><span><i style="background:${C.b}"></i>crisp (T ≥ 30)</span><span><i style="background:${C.a}"></i>fuzzy</span></span>`);
+    const r = slider(ctr, 'Distance', 0, 3, 0.01, d, v => { d = v; draw(); }, v => v.toFixed(2) + ' m');
+    button(ctr, '▶ Robot approaches', () => tween(3500, t => { d = 2.5 - 2.2 * t; r.value = d; r.nextSibling.textContent = d.toFixed(2) + ' m'; draw(); }));
+    ctr.insertAdjacentHTML('beforeend', `<span class="legend"><span><i style="background:${C.b}"></i>crisp (d ≤ 1.0 m)</span><span><i style="background:${C.a}"></i>fuzzy</span></span>`);
     draw();
   };
 
@@ -315,13 +316,13 @@
 
   /* --- Hedges (very, more-or-less, not) -------------------------- */
   W['hedges'] = el => {
-    const C = colors(), cv = canvas(el, 1000, 320), P = new Plot(cv, { x: [0, 100] });
+    const C = colors(), cv = canvas(el, 1000, 320), P = new Plot(cv, { x: [0, 3] });
     const ctr = h('div', { class: 'ctrls' }); el.append(ctr);
-    const base = { young: x => MF.trap(x, [0, 0, 25, 45]), old: x => MF.sig(x, [0.15, 55]) };
+    const base = { close: x => MF.trap(x, [0, 0, 0.4, 1.2]), far: x => MF.sig(x, [5, 1.8]) };
     const hedges = { none: m => m, 'very (μ²)': m => m * m, 'extremely (μ³)': m => m ** 3, 'more or less (√μ)': m => Math.sqrt(m), 'not (1−μ)': m => 1 - m, 'not very (1−μ²)': m => 1 - m * m };
-    let b = 'young', hd = 'none', prev = null;
+    let b = 'close', hd = 'none', prev = null;
     function draw(f) {
-      P.clear().axes({ xlabel: 'Age (years)', xticks: [0, 20, 40, 60, 80, 100] });
+      P.clear().axes({ xlabel: 'Distance to obstacle (m)', xticks: [0, 0.5, 1, 1.5, 2, 2.5, 3] });
       P.fn(base[b], { color: C.ink3, width: 2, dash: [6, 4] }).fn(f, { color: C.a, width: 3.5, fill: .12 });
     }
     const s1 = h('select'); Object.keys(base).forEach(k => s1.append(h('option', { value: k }, k)));
@@ -414,11 +415,13 @@
 
   /* --- Cartesian product heat-map -------------------------------- */
   W['cartesian'] = el => {
+    // Robot example: R = "speed is FAST" × "obstacle is CLOSE"  →  collision risk
     const C = colors(), cv = canvas(el, 1000, 400), ctx = cv.getContext('2d');
-    const P = new Plot(cv, { x: [1, 100], y: [1, 1000], margin: { l: 70, r: 220, t: 14, b: 44 } });
+    const xr = [0, 1], yr = [0, 3];
+    const P = new Plot(cv, { x: xr, y: yr, margin: { l: 70, r: 220, t: 14, b: 44 } });
     const ctr = h('div', { class: 'ctrls' }); el.append(ctr);
     const out = h('div', { class: 'readout' }, 'Hover over the map.'); el.append(out);
-    const A = x => MF.gbell(x, [20, 3, 50]), B = y => MF.sig(y, [0.01, 500]);
+    const A = x => MF.sig(x, [12, 0.5]), B = y => MF.sig(y, [-5, 1.0]);
     let tnorm = 'min';
     const T = (a, b) => tnorm === 'min' ? Math.min(a, b) : a * b;
     const ramp = v => { // paper → teal → violet
@@ -427,24 +430,24 @@
       return `rgb(${p.map((c, i) => Math.round(c + (q[i] - c) * t)).join(',')})`;
     };
     function draw(hx, hy) {
-      P.clear(); const nx = 90, ny = 60;
+      P.clear(); const nx = 90, ny = 60, dx = (xr[1] - xr[0]) / nx, dy = (yr[1] - yr[0]) / ny;
       for (let i = 0; i < nx; i++) for (let j = 0; j < ny; j++) {
-        const x = 1 + 99 * i / nx, y = 1 + 999 * j / ny;
-        ctx.fillStyle = ramp(T(A(x), B(y)));
-        ctx.fillRect(P.X(x), P.Y(y + 999 / ny), P.X(x + 99 / nx) - P.X(x) + 1, P.Y(y) - P.Y(y + 999 / ny) + 1);
+        const x = xr[0] + dx * i, y = yr[0] + dy * j;
+        ctx.fillStyle = ramp(T(A(x + dx / 2), B(y + dy / 2)));
+        ctx.fillRect(P.X(x), P.Y(y + dy), P.X(x + dx) - P.X(x) + 1, P.Y(y) - P.Y(y + dy) + 1);
       }
-      P.axes({ xlabel: 'x: books sold per month', ylabel: 'y: books on shelf', xticks: [1, 25, 50, 75, 100], yticks: [1, 250, 500, 750, 1000], grid: false });
+      P.axes({ xlabel: 'x: robot speed (m/s)  —  A = "fast"', ylabel: 'y: obstacle distance (m) — B = "close"', xticks: [0, 0.25, 0.5, 0.75, 1], yticks: [0, 0.5, 1, 1.5, 2, 2.5, 3], grid: false });
       for (let i = 0; i <= 10; i++) { ctx.fillStyle = ramp(i / 10); ctx.fillRect(820, 330 - i * 28, 26, 28); }
-      P.text('μR = 1', 852, 60, { font: '600 13px Inter' }).text('μR = 0', 852, 330, { font: '600 13px Inter' });
+      P.text('risk = 1', 852, 60, { font: '600 13px Inter' }).text('risk = 0', 852, 330, { font: '600 13px Inter' });
       P.text(`T-norm: ${tnorm}`, 820, 370, { color: C.c });
       if (hx !== undefined) { P.vline(hx, { color: C.ink }).hline(hy, { color: C.ink }); }
     }
     cv.addEventListener('mousemove', e => {
       const r = cv.getBoundingClientRect(), px = (e.clientX - r.left) / r.width * P.W, py = (e.clientY - r.top) / r.height * P.H;
       const x = P.iX(px), y = P.yr[0] + (P.Y(P.yr[0]) - py) / (P.Y(P.yr[0]) - P.Y(P.yr[1])) * (P.yr[1] - P.yr[0]);
-      if (x < 1 || x > 100 || y < 1 || y > 1000) return;
+      if (x < xr[0] || x > xr[1] || y < yr[0] || y > yr[1]) return;
       draw(x, y);
-      out.textContent = `x = ${x.toFixed(0)} sales,  y = ${y.toFixed(0)} books   μA = ${round(A(x))}  μB = ${round(B(y))}  →  μR = ${tnorm}(…) = ${round(T(A(x), B(y)))}`;
+      out.textContent = `speed = ${x.toFixed(2)} m/s,  distance = ${y.toFixed(2)} m   μFast = ${round(A(x))}  μClose = ${round(B(y))}  →  μRisk = ${tnorm}(…) = ${round(T(A(x), B(y)))}`;
     });
     button(ctr, 'min', () => { tnorm = 'min'; draw(); }); button(ctr, 'product', () => { tnorm = 'prod'; draw(); });
     draw();
@@ -482,6 +485,15 @@
 
   /* --- Full Mamdani FIS diagram (step-by-step) ------------------- */
   const SYSTEMS = {
+    robot: {   // mobile robot: forward speed from front-sonar distance and |heading error| to the goal
+      inputs: {
+        Distance: { range: [0, 3], unit: 'm', terms: { near: ['trap', [0, 0, 0.5, 1.2]], medium: ['tri', [0.5, 1.25, 2]], far: ['trap', [1.3, 2, 3, 3]] } },
+        Heading: { range: [0, 90], unit: '°', terms: { small: ['trap', [0, 0, 10, 35]], large: ['trap', [15, 45, 90, 90]] } }
+      },
+      output: { name: 'Speed', range: [0, 0.5], unit: 'm/s', terms: { slow: ['trap', [0, 0, 0.05, 0.2], 0.05], medium: ['tri', [0.1, 0.25, 0.4]], fast: ['trap', [0.3, 0.45, 0.5, 0.5], 0.45] } },
+      rules: [{ if: [['Distance', 'far'], ['Heading', 'small']], then: 'fast' }, { if: [['Distance', 'medium'], ['Heading', 'small']], then: 'medium' }, { if: [['Distance', 'near'], ['Heading', 'large']], then: 'slow', op: 'or' }],
+      init: { Distance: 1.6, Heading: 20 }
+    },
     speed: {
       inputs: {
         Cloud: { range: [0, 100], unit: '%', terms: { Sunny: ['trap', [0, 0, 20, 40]], Partly: ['tri', [20, 50, 80]], Overcast: ['trap', [60, 80, 100, 100]] } },
@@ -511,14 +523,14 @@
     const out = h('div', { class: 'readout' }); el.append(out);
     const crisp = Object.assign({}, sys.init);
     let stage = 5, method = ds(el, 'defuzz', 'centroid');
-    const stages = ['0 · crisp inputs', '1 · fuzzify', '2 · rule strength (AND = min)', '3 · implication (clip)', '4 · aggregation (max)', '5 · defuzzify'];
+    const stages = ['0 · crisp inputs', '1 · fuzzify', '2 · rule strength (AND = min, OR = max)', '3 · implication (clip)', '4 · aggregation (max)', '5 · defuzzify'];
     const stageEl = h('span', { class: 'stage' });
     function cell(r, col) { return [200 + col * colW, r * rowH, colW, rowH]; }
     function draw() {
       const res = mamdani(sys, crisp, { defuzz: method });
       P.clear(true); const ctx = P.ctx;
       sys.rules.forEach((rule, r) => {
-        const lines = rule.if.map(([v, t], k) => `${k ? 'AND' : 'IF'} ${v} is ${t}`).concat([`THEN ${sys.output.name} is ${rule.then}`]);
+        const lines = rule.if.map(([v, t], k) => `${k ? (rule.op === 'or' ? 'OR' : 'AND') : 'IF'} ${v} is ${t}`).concat([`THEN ${sys.output.name} is ${rule.then}`]);
         const y0 = r * rowH + rowH / 2 - (lines.length * 14) / 2;
         P.text(`R${r + 1}`, 10, y0 - 6, { font: '800 22px Inter', color: C.ink3 });
         lines.forEach((ln, k) => P.text(ln, 10, y0 + 12 + k * 14, { font: '500 12px Inter', color: C.ink2 }));
@@ -701,12 +713,15 @@
   /* --- ANFIS (1-input, first-order Sugeno) live training ---------- */
   W['anfis'] = el => {
     const C = colors(), cv = canvas(el, 1100, 390);
-    const P1 = new Plot(cv, { x: [0, 10], y: [-1.6, 2.6], box: [0, 0, 1100, 262], margin: { l: 50, r: 16, t: 10, b: 12 } });
+    const P1 = new Plot(cv, { x: [0, 10], y: [0, 1.0], box: [0, 0, 1100, 262], margin: { l: 50, r: 16, t: 10, b: 12 } });
     const P2 = new Plot(cv, { x: [0, 10], y: [0, 1.05], box: [0, 262, 1100, 128], margin: { l: 50, r: 16, t: 8, b: 30 } });
     const ctr = h('div', { class: 'ctrls' }); el.append(ctr);
     const out = h('div', { class: 'readout' }); el.append(out);
-    const target = x => Math.sin(x) + 0.15 * x;
-    const X = linspace(0, 10, 60), Yt = X.map(x => target(x) + (Math.sin(13 * x) * 0.05));
+    // Robot example: calibrate a Sharp-type IR range sensor (output voltage → distance).
+    // Internally x ∈ [0, 10] is mapped to V = 0.4 … 3.0 V; target distance d = 0.27 / (V − 0.1) m (+ small noise).
+    const volt = x => 0.4 + 0.26 * x, fmtV = x => volt(x).toFixed(1) + ' V';
+    const target = x => 0.27 / (volt(x) - 0.1);
+    const X = linspace(0, 10, 60), Yt = X.map(x => target(x) + (Math.sin(13 * x) * 0.01));
     let N = 3, prem, cons, epoch = 0, timer = null, LR = 0.5;
     function init() { prem = linspace(2, 8, N).map(c => ({ c, s: 1.0 })); cons = Array(2 * N).fill(0); epoch = 0; LR = 0.5; }
     const firing = x => { const w = prem.map(p => MF.gauss(x, [p.c, p.s])); const S = w.reduce((a, b) => a + b, 0) || 1e-12; return w.map(v => v / S); };
@@ -730,20 +745,20 @@
       if (mse() > base) { prem.forEach((p, i) => Object.assign(p, saveP[i])); cons = saveC; LR *= 0.5; } else LR *= 1.2;
     }
     function draw() {
-      P1.clear().axes({ xlabel: '', ylabel: 'y', xticks: [], yticks: [-1, 0, 1, 2] });
+      P1.clear().axes({ xlabel: '', ylabel: 'distance (m)', xticks: [], yticks: [0, 0.25, 0.5, 0.75, 1] });
       X.forEach((x, k) => P1.dot(x, Yt[k], C.ink3, 3.5));
       prem.forEach((p, i) => P1.fn(x => cons[2 * i] * x + cons[2 * i + 1], { color: PALETTE()[i % 7], width: 1, dash: [4, 4] }));
       P1.fn(predict, { color: C.c, width: 3.5 });
-      P2.clear().axes({ xlabel: '', ylabel: 'μ', xticks: [0, 2, 4, 6, 8, 10], yticks: [0, 1] });
+      P2.clear().axes({ xlabel: '', ylabel: 'μ', xticks: [0, 2, 4, 6, 8, 10], yticks: [0, 1], fmt: fmtV });
       prem.forEach((p, i) => P2.fn(x => MF.gauss(x, [p.c, p.s]), { color: PALETTE()[i % 7], width: 2.5, fill: .08 }));
-      out.textContent = `epoch ${String(epoch).padStart(3)}   MSE = ${mse().toFixed(5)}   rules: ${N}   ` + prem.map((p, i) => `R${i + 1}: c=${p.c.toFixed(2)} σ=${p.s.toFixed(2)} → y=${cons[2 * i].toFixed(2)}x${cons[2 * i + 1] >= 0 ? '+' : ''}${cons[2 * i + 1].toFixed(2)}`).join('  ');
+      out.textContent = `epoch ${String(epoch).padStart(3)}   RMSE = ${(100 * Math.sqrt(mse())).toFixed(2)} cm   rules: ${N}   ` + prem.map((p, i) => `R${i + 1}: IF V ≈ ${volt(p.c).toFixed(2)} V (σ=${(0.26 * p.s).toFixed(2)})`).join('   ');
     }
     function train(n) { for (let i = 0; i < n; i++) { if (!epoch) lse(); gd(); epoch++; } draw(); }
     button(ctr, '▶ Train', () => { clearInterval(timer); let k = 0; timer = setInterval(() => { train(1); if (++k >= 80) clearInterval(timer); }, 60); }, 'btn');
     button(ctr, 'Epoch +1', () => train(1));
     button(ctr, '↺ Reset', () => { clearInterval(timer); init(); draw(); });
     slider(ctr, 'rules (MFs)', 2, 6, 1, N, v => { clearInterval(timer); N = v; init(); draw(); }, v => v);
-    ctr.insertAdjacentHTML('beforeend', `<span class="legend"><span><i style="background:${C.ink3}"></i>training data</span><span><i style="background:${C.c}"></i>ANFIS output</span><span>dashed: rule consequents yᵢ = pᵢx + rᵢ</span></span>`);
+    ctr.insertAdjacentHTML('beforeend', `<span class="legend"><span><i style="background:${C.ink3}"></i>calibration samples</span><span><i style="background:${C.c}"></i>ANFIS model d(V)</span><span>dashed: rule consequents dᵢ = pᵢV + rᵢ</span></span>`);
     init(); draw();
   };
 

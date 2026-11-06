@@ -22,6 +22,8 @@ Note:
 
 A motor moves the **print head** along a 20 cm rail. The motor accepts **±12 V**.
 
+<p class="small">Why a printer? It is a <b>1-DOF position servo</b> — exactly the problem of positioning a robot joint, a linear axis of a gantry robot or a 3-D printer head.</p>
+
 <div class="pipeline" style="margin-top:20px">
 <div class="blk">desired position</div><div class="arr">→ ⊕ →</div>
 <div class="blk a2">FLC<small>error → V</small></div><div class="arr">→</div>
@@ -142,9 +144,9 @@ This is the key computational insight: in practice all FLCs with crisp sensors u
 
 ## Cut → join → defuzzify
 
-<div data-widget="fis" data-system="speed" data-stage="0"></div>
+<div data-widget="fis" data-system="robot" data-stage="0"></div>
 
-<p class="small">Same mechanics as the printer — here with two inputs. Step through: fuzzify → <b>cut</b> each consequent → <b>join</b> (aggregate) → defuzzify.</p>
+<p class="small">Same mechanics as the printer — here with the two-input robot-speed controller from Session 6. Step through: fuzzify → <b>cut</b> each consequent → <b>join</b> (aggregate) → defuzzify.</p>
 
 Note:
 Re-use the FIS widget to visualise the singleton method; with one antecedent there's no min between inputs — the cut height is just μAi(x0). Point out where the 'cut' and 'join' happen.

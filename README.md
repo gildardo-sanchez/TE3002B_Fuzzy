@@ -52,25 +52,46 @@ build.py                   src/*.md  →  decks/*.html
 
 | Widget (`data-widget=`) | Used in | What it animates |
 |---|---|---|
-| `crisp-fuzzy` | 02 | crisp threshold vs graded membership |
+| `crisp-fuzzy` | 02 | crisp vs fuzzy “obstacle close” braking |
 | `mf-explorer` (`data-terms="true"`) | 02, 04 | 5 MF shapes, live scikit-fuzzy call, support/core/α-cut |
 | `set-ops` | 03 | morphing union/intersection/complement/product with probe |
-| `hedges` | 04 | very / more-or-less / not |
+| `hedges` | 04 | very / more-or-less / not on “close” and “far” |
 | `relation-ops` | 05 | cell-by-cell R ∪ S, R ∩ S |
 | `gmp` (`data-a`, `data-b`, `data-ap`, `data-x`, `data-y`) | 05, 06 | generalized modus ponens B′ = A′ ∘ (A × B) |
-| `cartesian` | 06 | Cartesian product heat-map (min / product) |
+| `cartesian` | 06 | collision-risk relation heat-map (min / product) |
 | `composition` | 06 | max-min / max-product composition stepper |
 | `rule-table` | 07 | inverted-pendulum 5×5 rule table to complete |
-| `fis` (`data-system="speed"` or `"crane"`) | 07, 09 | full Mamdani pipeline, stage by stage |
+| `fis` (`data-system="robot"`, `"crane"` or `"speed"`) | 07, 09 | full Mamdani pipeline, stage by stage |
 | `defuzz` (`data-preset`) | 08 | centroid, bisector, MOM, SOM, LOM, weighted avg, center of sums |
 | `printer` (`data-buggy`, `data-terms`) | 09, 10 | control curve + closed-loop P vs fuzzy, tuning knobs |
-| `anfis` | 11 | live hybrid-learning (LSE + gradient descent) of a Sugeno model |
+| `anfis` | 11 | live hybrid learning (LSE + gradient descent) calibrating an IR sensor |
 | `conveyor` | 12 | ball-on-belt fuzzy PD controller simulation |
 
 ## Presenter tips
 
-`S` speaker view (notes + timer + next slide) · `F` full screen · `Esc` overview · `B` blank screen · `Alt`+click zoom · add `?print-pdf` to the URL and print to PDF for handouts.
+`M` back to the session menu · `S` speaker view (notes + timer + next slide) · `F` full screen · `Esc` overview · `B` blank screen · `Alt`+click zoom · add `?print-pdf` to the URL and print to PDF for handouts.
 The chip in the top-right corner counts checkpoint answers clicked during the session (in-memory, resets on reload).
+
+## Navigation
+
+Every deck shows a **⌂ All sessions** button (bottom-left) and ends with an automatic closing slide with **Back to all sessions** and **Next: …** buttons (added by `build.py`). Pressing `M` returns to the menu at any time.
+
+## Robotics-oriented examples
+
+The generic examples of the original slides were replaced with robotics versions (the originals are mentioned in the speaker notes):
+
+| Deck | Original | Robotics version |
+|---|---|---|
+| 02 | Is 29.9 °C “hot”? / “Tall” ≥ 1.80 m | Is an obstacle at 1.01 m “close”? (sonar braking) / line-follower “off-track” |
+| 03 | hot AND humid | moving fast AND obstacle close |
+| 04 | seasons, age, strong fever, courses per semester, “about 50 years” | battery, obstacle distance, joint angle; motor overheating; “robot surrounded” (8 sonars); “about 50 cm from the wall” |
+| 05 | umbrella, pressure/tip/weather rules | crowded corridor, robot rules (obstacle, slippery floor, heading, gripper) |
+| 06 | bookstore Cartesian product, soccer possession, “Pedro studies” | collision risk (speed × distance), heading error, “sonar reads ≈ 2.5 m → brake?” |
+| 07 | How fast will I drive (weather) | How fast should my robot go (obstacle distance + heading error) |
+| 08 | student grade (weighted average) | gripper force |
+| 11 | — | ANFIS calibrates a Sharp-type IR range sensor |
+
+Pendulum, crane, printer head (1-DOF servo) and conveyor belt were kept.
 
 ## Corrections made to the original material
 
